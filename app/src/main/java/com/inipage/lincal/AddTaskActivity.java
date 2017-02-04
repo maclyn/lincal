@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.TimePicker;
@@ -29,6 +30,7 @@ public class AddTaskActivity extends AppCompatActivity {
     int hourOfDay = 12;
     int minuteOfDay = 0;
 
+    CheckBox enableReminder;
     EditText name;
     RecyclerView iconPicker;
     IVPickerAdapter iconAdapter;
@@ -61,6 +63,7 @@ public class AddTaskActivity extends AppCompatActivity {
         reminderTime = (Button) findViewById(R.id.reminder_time);
         reminderDow = (Button) findViewById(R.id.reminder_dow);
         countPicker = (NumberPicker) findViewById(R.id.count_picker);
+        enableReminder = (CheckBox) findViewById(R.id.enable_reminder);
 
         iconPicker.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         colorPicker.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -135,8 +138,17 @@ public class AddTaskActivity extends AppCompatActivity {
                         .show();
             }
         });
-        countPicker.setMinValue(0);
-        countPicker.setMaxValue(120);
+        countPicker.setMinValue(5);
+        countPicker.setMaxValue(360);
+        enableReminder.setChecked(true);
+        enableReminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                reminderTime.setEnabled(b);
+                reminderDow.setEnabled(b);
+                countPicker.setEnabled(b);
+            }
+        });
     }
 
     @Override
@@ -156,7 +168,7 @@ public class AddTaskActivity extends AppCompatActivity {
                         colorAdapter.getSelectedColor(),
                         reminderTime.getText().toString(),
                         reminderDow.getText().toString(),
-                        countPicker.getValue())) {
+                        enableReminder.isChecked() ? countPicker.getValue() : 0)) {
                     Toast.makeText(this, "Task saved.", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {

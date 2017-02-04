@@ -7,17 +7,7 @@
     android:layout_height="match_parent">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/task_view"
+        android:id="@+id/today_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/add_task"
-        android:layout_gravity="bottom|right"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        app:srcCompat="@drawable/ic_add_white_24dp"
-        app:fabSize="normal" />
 </FrameLayout>

@@ -69,6 +69,14 @@
                 android:id="@+id/new_task_color_picker"
                 android:layout_width="match_parent"
                 android:layout_height="48dp" />
+
+            <CheckBox
+                android:id="@+id/enable_reminder"
+                android:text="Enable reminder"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
             
             <LinearLayout
                 android:orientation="horizontal"

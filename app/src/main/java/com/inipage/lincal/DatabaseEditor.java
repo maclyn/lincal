@@ -6,7 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class DatabaseEditor {
@@ -66,5 +68,80 @@ public class DatabaseEditor {
         }
         c.close();
         return tasks;
+    }
+
+
+    public List<TaskToday> getTasksWithTimeSpentToday(){
+        List<Task> tasks = getTasks();
+        List<TaskToday> todayTasks = new ArrayList<>();
+        for(Task t : tasks){
+            Cursor c = db.rawQuery("SELECT  * FROM records WHERE date(records.start_time) = date('now')", new String[]{});
+            int secondsForTask = 0;
+            if(c.moveToFirst()){
+                int secondsCol = c.getColumnIndex(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME);
+
+                while(!c.isAfterLast()){
+                    secondsForTask += c.getInt(secondsCol);
+                }
+            }
+            c.close();
+
+            todayTasks.add(new TaskToday(t, secondsForTask));
+        }
+        return todayTasks;
+    }
+
+    public boolean addNewRecord(int taskId, int totalTimeSeconds, String note, Date startTime, Date endTime){
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHelper.RECORDS_TASK_ID_COL_NAME, taskId);
+        cv.put(DatabaseHelper.RECORDS_BILLED_COL_NAME, 0);
+        cv.put(DatabaseHelper.RECORDS_NOTES_COL_NAME, note);
+        cv.put(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME, totalTimeSeconds);
+        cv.put(DatabaseHelper.RECORDS_START_TIME_COL_NAME, DatabaseHelper.DB_DATE_FORMAT.format(startTime));
+        cv.put(DatabaseHelper.RECORDS_END_TIME_COL_NAME, DatabaseHelper.DB_DATE_FORMAT.format(endTime));
+        long result = db.insert(DatabaseHelper.RECORDS_TABLE_NAME, null, cv);
+        return result != -1L;
+    }
+
+    /**
+     * Get all records sorted by date. Useful for history browsing, though not efficient.
+     * //TODO: Return a raw cursor for a {@link android.support.v4.widget.CursorAdapter}-esque thing.
+     * @return The records.
+     */
+    public List<Record> getRecordsSortedByDay(){
+        Cursor c = db.rawQuery("SELECT tasks.id AS task_id, records.id AS record_id, records.end_time, records.billed, records.start_time, records.notes, records.total_time, tasks.name, tasks.color FROM records INNER JOIN tasks ON records.task_id = tasks.id ORDER BY datetime(records.start_time) DESC", new String[]{});
+        List<Record> records = new ArrayList<>();
+        if(c.moveToFirst()){
+            int idCol = c.getColumnIndex("record_id");
+            int notesCol = c.getColumnIndex(DatabaseHelper.RECORDS_NOTES_COL_NAME);
+            int totalTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME);
+            int startTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_START_TIME_COL_NAME);
+            int endTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_END_TIME_COL_NAME);
+            int billedCol = c.getColumnIndex(DatabaseHelper.RECORDS_BILLED_COL_NAME);
+
+            int taskIdCol = c.getColumnIndex("task_id");
+            int taskColorCol = c.getColumnIndex(DatabaseHelper.TASKS_COLOR_COL_NAME);
+            int taskNameCol = c.getColumnIndex(DatabaseHelper.TASKS_NAME_COL_NAME);
+
+            while(!c.isAfterLast()){
+                try {
+                    records.add(new Record(
+                            c.getLong(idCol),
+                            c.getString(notesCol),
+                            c.getInt(totalTimeCol),
+                            DatabaseHelper.DB_DATE_FORMAT.parse(c.getString(startTimeCol)),
+                            DatabaseHelper.DB_DATE_FORMAT.parse(c.getString(endTimeCol)),
+                            c.getInt(billedCol),
+                            c.getLong(taskIdCol),
+                            c.getLong(taskColorCol),
+                            c.getString(taskNameCol)
+                    ));
+                } catch (ParseException ignored) {
+                }
+                c.moveToNext();
+            }
+        }
+        c.close();
+        return records;
     }
 }

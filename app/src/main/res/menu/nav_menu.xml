@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/today"
         android:title="@string/today"
@@ -9,11 +10,6 @@
         android:id="@+id/history"
         android:title="@string/history"
         android:icon="@drawable/ic_history_black_24dp" />
-
-    <item
-        android:id="@+id/insights"
-        android:title="@string/insights"
-        android:icon="@drawable/ic_lightbulb_outline_black_24dp" />
 
     <item
         android:id="@+id/settings"
