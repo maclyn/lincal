@@ -52,7 +52,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
         String dowStr = mTasks.get(position).getReminderDow();
         int dayCount = (dowStr == null || dowStr.isEmpty() ? 0 : dowStr.trim().split(" ").length);
 
-        if(dayCount == 0 || mTasks.get(0).getReminderThreshold() == 0){
+        if(dayCount == 0 || mTasks.get(position).getReminderThreshold() == 0){
             holder.subtitle.setText("No reminder set");
         } else {
             holder.subtitle.setText(mTasks.get(position).getReminderThreshold() + " minutes, " + dayCount + "x/week");

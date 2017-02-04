@@ -11,4 +11,8 @@ public class TaskToday extends Task {
     public int getSecondsSoFar() {
         return secondsSoFar;
     }
+
+    public void setSecondsSoFar(int secondsSoFar) {
+        this.secondsSoFar = secondsSoFar;
+    }
 }

@@ -75,13 +75,14 @@ public class DatabaseEditor {
         List<Task> tasks = getTasks();
         List<TaskToday> todayTasks = new ArrayList<>();
         for(Task t : tasks){
-            Cursor c = db.rawQuery("SELECT  * FROM records WHERE date(records.start_time) = date('now')", new String[]{});
+            Cursor c = db.rawQuery("SELECT  * FROM records WHERE date(records.start_time) = date('now') AND records.task_id=?",
+                    new String[]{ String.valueOf(t.getId())});
             int secondsForTask = 0;
             if(c.moveToFirst()){
                 int secondsCol = c.getColumnIndex(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME);
-
                 while(!c.isAfterLast()){
                     secondsForTask += c.getInt(secondsCol);
+                    c.moveToNext();
                 }
             }
             c.close();
@@ -91,7 +92,7 @@ public class DatabaseEditor {
         return todayTasks;
     }
 
-    public boolean addNewRecord(int taskId, int totalTimeSeconds, String note, Date startTime, Date endTime){
+    public boolean addNewRecord(long taskId, int totalTimeSeconds, String note, Date startTime, Date endTime){
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHelper.RECORDS_TASK_ID_COL_NAME, taskId);
         cv.put(DatabaseHelper.RECORDS_BILLED_COL_NAME, 0);
@@ -143,5 +144,13 @@ public class DatabaseEditor {
         }
         c.close();
         return records;
+    }
+
+    public Task getTask(long taskId) {
+        List<Task> tasks = getTasks();
+        for(Task t : tasks){ //Inefficient, but quick to write
+            if(t.getId() == taskId) return t;
+        }
+        return null;
     }
 }

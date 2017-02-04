@@ -138,7 +138,7 @@ public class AddTaskActivity extends AppCompatActivity {
                         .show();
             }
         });
-        countPicker.setMinValue(5);
+        countPicker.setMinValue(1);
         countPicker.setMaxValue(360);
         enableReminder.setChecked(true);
         enableReminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

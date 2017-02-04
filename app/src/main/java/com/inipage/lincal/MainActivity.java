@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements
         Fragment fragmentForReplacing = DummyFragment.newInstance();
         switch(itemId){
             case R.id.today:
+                fragmentForReplacing = TodayFragment.newInstance();
                 break;
             case R.id.history:
                 break;
