@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String FILENAME = "database.db";
-    public static final int VERSION = 1;
+    public static final int VERSION = 3;
 
     public static final String TASKS_TABLE_NAME = "tasks";
     public static final String TASKS_ID_COL_NAME = "id";
@@ -15,13 +15,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TASKS_COLOR_COL_NAME = "color";
     public static final String TASKS_REMINDER_TIME_COL_NAME = "reminder_time";
     public static final String TASKS_REMINDER_THRESHOLD_COL_NAME = "reminder_threshold";
+    public static final String TASKS_REMINDER_DOW_COL_NAME = "reminder_dow";
     public static final String TASKS_CUSTOMER_ID_COL_NAME = "customer_id";
     private static final String CREATE_TABLE_TASKS = "CREATE TABLE \"" + TASKS_TABLE_NAME + "\" (\n" +
             "\t`" + TASKS_ID_COL_NAME + "`\tINTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,\n" +
             "\t`" + TASKS_NAME_COL_NAME + "`\tTEXT NOT NULL UNIQUE,\n" +
             "\t`" + TASKS_ICON_COL_NAME + "`\tTEXT NOT NULL,\n" +
+            "\t`" + TASKS_REMINDER_DOW_COL_NAME + "`\tTEXT,\n" +
             "\t`" + TASKS_COLOR_COL_NAME + "`\tINTEGER NOT NULL,\n" +
-            "\t`" + TASKS_REMINDER_TIME_COL_NAME + "`\tINTEGER NOT NULL,\n" +
+            "\t`" + TASKS_REMINDER_TIME_COL_NAME + "`\tTEXT NOT NULL,\n" +
             "\t`" + TASKS_CUSTOMER_ID_COL_NAME + "`\tINTEGER NOT NULL,\n" +
             "\t`" + TASKS_REMINDER_THRESHOLD_COL_NAME + "`\tINTEGER\n" +
             ")";
@@ -57,5 +59,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+        //What could go wrong?
+        sqLiteDatabase.execSQL("DROP TABLE " + RECORDS_TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE " + TASKS_TABLE_NAME);
+        sqLiteDatabase.execSQL(CREATE_TABLE_TASKS);
+        sqLiteDatabase.execSQL(CREATE_TABLE_RECORDS);
     }
 }
