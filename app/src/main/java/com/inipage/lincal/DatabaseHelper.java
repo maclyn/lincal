@@ -9,7 +9,7 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String FILENAME = "database.db";
-    public static final int VERSION = 3;
+    public static final int VERSION = 4;
     public static final SimpleDateFormat DB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     public static final String TASKS_TABLE_NAME = "tasks";
@@ -28,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "\t`" + TASKS_REMINDER_DOW_COL_NAME + "`\tTEXT,\n" +
             "\t`" + TASKS_COLOR_COL_NAME + "`\tINTEGER NOT NULL,\n" +
             "\t`" + TASKS_REMINDER_TIME_COL_NAME + "`\tTEXT NOT NULL,\n" +
-            "\t`" + TASKS_CUSTOMER_ID_COL_NAME + "`\tINTEGER NOT NULL,\n" +
+            "\t`" + TASKS_CUSTOMER_ID_COL_NAME + "`\tTEXT NOT NULL,\n" +
             "\t`" + TASKS_REMINDER_THRESHOLD_COL_NAME + "`\tINTEGER\n" +
             ")";
 

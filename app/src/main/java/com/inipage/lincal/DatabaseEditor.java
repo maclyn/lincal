@@ -24,7 +24,7 @@ public class DatabaseEditor {
         db = new DatabaseHelper(context, DatabaseHelper.FILENAME, null, DatabaseHelper.VERSION).getWritableDatabase();
     }
 
-    public boolean addNewTask(String name, String icon, int color, String time, String daysOfWeek, int minutesForReminder){
+    public boolean addNewTask(String name, String icon, int color, String time, String daysOfWeek, int minutesForReminder, String customerId){
         if(name.isEmpty() || icon.isEmpty()) return false;
 
         ContentValues cv = new ContentValues();
@@ -34,7 +34,7 @@ public class DatabaseEditor {
         cv.put(DatabaseHelper.TASKS_REMINDER_TIME_COL_NAME, time);
         cv.put(DatabaseHelper.TASKS_REMINDER_DOW_COL_NAME, daysOfWeek.toLowerCase());
         cv.put(DatabaseHelper.TASKS_REMINDER_THRESHOLD_COL_NAME, minutesForReminder);
-        cv.put(DatabaseHelper.TASKS_CUSTOMER_ID_COL_NAME, -1);
+        cv.put(DatabaseHelper.TASKS_CUSTOMER_ID_COL_NAME, customerId);
         long result = db.insert(DatabaseHelper.TASKS_TABLE_NAME, null, cv);
         return result != -1L;
     }
@@ -61,7 +61,7 @@ public class DatabaseEditor {
                         c.getString(reminderDowCol),
                         c.getString(reminderTimeCol),
                         c.getInt(reminderThresholdCol),
-                        c.getLong(reminderCustIdCol)
+                        c.getString(reminderCustIdCol)
                 ));
                 c.moveToNext();
             }
@@ -152,5 +152,32 @@ public class DatabaseEditor {
             if(t.getId() == taskId) return t;
         }
         return null;
+    }
+
+    public void deleteTask(long taskId) {
+        db.delete(DatabaseHelper.TASKS_TABLE_NAME, DatabaseHelper.TASKS_ID_COL_NAME + "=?", new String[] { String.valueOf(taskId) });
+        db.delete(DatabaseHelper.RECORDS_TABLE_NAME, DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?", new String[] { String.valueOf(taskId) });
+    }
+
+    public long getUnbilledTimeForTask(long taskId) {
+        long time = 0;
+        Cursor c = db.query(DatabaseHelper.RECORDS_TABLE_NAME, null, DatabaseHelper.RECORDS_BILLED_COL_NAME + "=? AND " + DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?",
+                new String[] { String.valueOf(0), String.valueOf(taskId) }, null, null, null);
+        if(c.moveToFirst()){
+            int totalTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME);
+            while(!c.isAfterLast()){
+                time += c.getInt(totalTimeCol);
+                c.moveToNext();
+            }
+        }
+        c.close();
+        return time;
+    }
+
+    public void markTaskBilled(long taskId){
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHelper.RECORDS_BILLED_COL_NAME, 1);
+        db.update(DatabaseHelper.RECORDS_TABLE_NAME, cv, DatabaseHelper.RECORDS_BILLED_COL_NAME + "=? AND " + DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?",
+                new String[] { String.valueOf(0), String.valueOf(taskId) });
     }
 }

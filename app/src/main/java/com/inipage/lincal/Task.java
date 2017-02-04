@@ -14,9 +14,9 @@ public class Task {
     private String reminderDow;
     private String reminderTime;
     private int reminderThreshold;
-    private long customerId;
+    private String customerId;
 
-    public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold, long customerId) {
+    public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold, String customerId) {
         this.id = id;
         this.name = name;
         this.icon = icon;
@@ -55,7 +55,7 @@ public class Task {
         return reminderThreshold;
     }
 
-    public long getCustomerId() {
+    public String getCustomerId() {
         return customerId;
     }
 }

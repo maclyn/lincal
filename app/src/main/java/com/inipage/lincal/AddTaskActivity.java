@@ -23,8 +23,14 @@ import android.widget.NumberPicker;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.reimaginebanking.api.nessieandroidsdk.NessieError;
+import com.reimaginebanking.api.nessieandroidsdk.NessieResultsListener;
+import com.reimaginebanking.api.nessieandroidsdk.models.Customer;
+import com.reimaginebanking.api.nessieandroidsdk.requestclients.NessieClient;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class AddTaskActivity extends AppCompatActivity {
     int hourOfDay = 12;
@@ -39,6 +45,7 @@ public class AddTaskActivity extends AppCompatActivity {
     Button reminderTime;
     Button reminderDow;
     NumberPicker countPicker;
+    Button addCustomer;
 
     ///Expediency is the mortal enemy of accuracy
     boolean sunday = false;
@@ -48,6 +55,8 @@ public class AddTaskActivity extends AppCompatActivity {
     boolean thursday = true;
     boolean friday = true;
     boolean saturday = false;
+
+    String customerId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +73,7 @@ public class AddTaskActivity extends AppCompatActivity {
         reminderDow = (Button) findViewById(R.id.reminder_dow);
         countPicker = (NumberPicker) findViewById(R.id.count_picker);
         enableReminder = (CheckBox) findViewById(R.id.enable_reminder);
+        addCustomer = (Button) findViewById(R.id.add_customer);
 
         iconPicker.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         colorPicker.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -149,6 +159,39 @@ public class AddTaskActivity extends AppCompatActivity {
                 countPicker.setEnabled(b);
             }
         });
+        addCustomer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                NessieClient client = NessieClient.getInstance("1e8703bbc020650c211be2d253a46834");
+                client.CUSTOMER.getCustomers(new NessieResultsListener() {
+                    @Override
+                    public void onSuccess(Object result) {
+                        final List<Customer> customers = (List<Customer>) result;
+                        String[] items = new String[customers.size()];
+                        for(int i = 0; i < customers.size(); i++){
+                            items[i] = customers.get(i).getFirstName() + " " + customers.get(i).getLastName();
+                        }
+                        new AlertDialog.Builder(AddTaskActivity.this)
+                                .setTitle("Pick a Customer")
+                                .setItems(items, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        String name = customers.get(i).getFirstName() + " " + customers.get(i).getLastName();
+                                        String id = customers.get(i).getId();
+                                        customerId = id;
+                                        addCustomer.setText("Client: " + name);
+                                    }
+                                })
+                                .show();
+                    }
+
+                    @Override
+                    public void onFailure(NessieError error) {
+                        Toast.makeText(AddTaskActivity.this, ":(", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -168,7 +211,8 @@ public class AddTaskActivity extends AppCompatActivity {
                         colorAdapter.getSelectedColor(),
                         reminderTime.getText().toString(),
                         reminderDow.getText().toString(),
-                        enableReminder.isChecked() ? countPicker.getValue() : 0)) {
+                        enableReminder.isChecked() ? countPicker.getValue() : 0,
+                        customerId == null ? "" : customerId)) {
                     Toast.makeText(this, "Task saved.", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {

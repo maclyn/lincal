@@ -70,6 +70,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp" />
 
+            <Button
+                android:id="@+id/add_customer"
+                android:text="Add customer"
+                android:gravity="center"
+                android:layout_margin="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
             <CheckBox
                 android:id="@+id/enable_reminder"
                 android:text="Enable reminder"
