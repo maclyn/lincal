@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">LinCal</string>
+    <string name="action_settings">Settings</string>
+    <string name="today">Today</string>
+    <string name="history">History</string>
+    <string name="insights">Insights</string>
+    <string name="settings">Settings</string>
+</resources>
