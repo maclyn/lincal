@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/date_string"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:text="January 16th"
+        android:maxLines="2"
+        android:layout_height="wrap_content"
+        android:layout_width="100dp" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_toRightOf="@+id/date_string"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:text="A Task Name"
+            android:id="@+id/task_name"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorPrimary"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+
+        <TextView
+            android:text="3:00 PM-12:32 PM"
+            android:id="@+id/time_range"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.AppCompat.Subhead"/>
+
+        <TextView
+            android:id="@+id/notes"
+            android:text="Here are some notes."
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/billed_footer"
+            android:layout_marginTop="4dp"
+            android:text="Not billed yet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</RelativeLayout>

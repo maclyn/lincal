@@ -117,7 +117,7 @@ public class TimerService extends Service {
         DatabaseEditor.getInstance(this).addNewRecord(
                 mTaskId,
                 (int) (System.currentTimeMillis() - mStartTime) / 1000,
-                "From timer",
+                "Timed with LinCal timer",
                 new Date(mStartTime),
                 new Date(System.currentTimeMillis())
         );

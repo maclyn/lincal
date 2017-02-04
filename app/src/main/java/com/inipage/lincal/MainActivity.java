@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements
                 fragmentForReplacing = TodayFragment.newInstance();
                 break;
             case R.id.history:
+                fragmentForReplacing = HistoryFragment.newInstance();
                 break;
             case R.id.settings:
                 fragmentForReplacing = TaskMgmtFragment.newInstance();

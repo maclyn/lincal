@@ -16,8 +16,9 @@ public class Record {
     long taskId;
     long taskColor;
     String taskName;
+    String taskCustomerId;
 
-    public Record(long id, String note, int totalTime, Date startTime, Date endTime, int billed, long taskId, long taskColor, String taskName) {
+    public Record(long id, String note, int totalTime, Date startTime, Date endTime, int billed, long taskId, long taskColor, String taskName, String taskCustomerId) {
         this.id = id;
         this.note = note;
         this.totalTime = totalTime;
@@ -27,6 +28,7 @@ public class Record {
         this.taskId = taskId;
         this.taskColor = taskColor;
         this.taskName = taskName;
+        this.taskCustomerId = taskCustomerId;
     }
 
     public long getId() {
@@ -63,5 +65,13 @@ public class Record {
 
     public String getTaskName() {
         return taskName;
+    }
+
+    public String getTaskCustomerId() {
+        return taskCustomerId;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }

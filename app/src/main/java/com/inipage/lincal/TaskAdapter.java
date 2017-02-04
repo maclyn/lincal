@@ -23,6 +23,7 @@ import com.reimaginebanking.api.nessieandroidsdk.models.Account;
 import com.reimaginebanking.api.nessieandroidsdk.models.Bill;
 import com.reimaginebanking.api.nessieandroidsdk.requestclients.NessieClient;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -102,60 +103,73 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
                     final DatabaseEditor editor = DatabaseEditor.getInstance(view.getContext());
                     final Task task = mTasks.get(holder.getAdapterPosition());
                     final long unbilledSeconds = editor.getUnbilledTimeForTask(task.getId());
+                    final String invoice = editor.getUnbilledNotesForTask(task.getId());
 
                     //(2) Add an hourly rate
                     final EditText editText = new EditText(view.getContext());
-                    editText.setHint("Enter your *hourly* rate");
+                    editText.setHint("Enter your hourly rate");
                     editText.setInputType(InputType.TYPE_CLASS_NUMBER);
                     new AlertDialog.Builder(view.getContext())
                             .setTitle("Billing for " + unbilledSeconds + " seconds of work")
                             .setView(editText)
-                            .setPositiveButton("Send Bill", new DialogInterface.OnClickListener() {
+                            .setPositiveButton("Prepare Invoice", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    //(3) Fetch customer accounts
-                                    final NessieClient client = NessieClient.getInstance("1e8703bbc020650c211be2d253a46834");
-                                    client.ACCOUNT.getCustomerAccounts(task.getCustomerId(), new NessieResultsListener() {
-                                        @Override
-                                        public void onSuccess(Object result) {
-                                            List<Account> accounts = (List<Account>) result;
-                                            String id = null;
-                                            for(Account a : accounts){
-                                                Log.d(TAG, a.getBalance() + " " + a.getId());
-                                                id = a.getId();
-                                            }
-
-                                            Double amount = ((double) unbilledSeconds) / 60D / 60D * Double.valueOf(editText.getText().toString());
-                                            Log.d(TAG, "Billing for " + amount);
-
-                                            client.BILL.createBill(id, new Bill.Builder()
-                                                    .nickname("Bill for " + task.getName())
-                                                    .payee(task.getCustomerId())
-                                                    .paymentAmount(amount)
-                                                    .recurringDate(1)
-                                                    .paymentDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()))
-                                                    .status(BillStatus.PENDING)
-                                                    .build(), new NessieResultsListener() {
+                                    double hourlyRate = editText.getText().toString().isEmpty() ? 10.0d : Double.valueOf(editText.getText().toString());
+                                    final Double amount = ((double) unbilledSeconds) / 60D / 60D * hourlyRate;
+                                    DecimalFormat df = new DecimalFormat("#.##");
+                                    final String finalMsg = "Bill for " + unbilledSeconds + " seconds of work @ " + hourlyRate + "/hr = $" + df.format(amount) + "\n\n" + invoice;
+                                    new AlertDialog.Builder(ctx)
+                                            .setTitle("Preview Invoice")
+                                            .setMessage(finalMsg)
+                                            .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
                                                 @Override
-                                                public void onSuccess(Object result) {
-                                                    editor.markTaskBilled(task.getId());
-                                                    Toast.makeText(ctx, "Bill successfully sent.", Toast.LENGTH_SHORT).show();
-                                                }
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    //(3) Fetch customer accounts
+                                                    final NessieClient client = NessieClient.getInstance("1e8703bbc020650c211be2d253a46834");
+                                                    client.ACCOUNT.getCustomerAccounts(task.getCustomerId(), new NessieResultsListener() {
+                                                        @Override
+                                                        public void onSuccess(Object result) {
+                                                            List<Account> accounts = (List<Account>) result;
+                                                            String id = null;
+                                                            for(Account a : accounts){
+                                                                Log.d(TAG, a.getBalance() + " " + a.getId());
+                                                                id = a.getId();
+                                                            }
 
-                                                @Override
-                                                public void onFailure(NessieError error) {
-                                                    Log.d(TAG, "Error: " + error.getMessage());
-                                                    Toast.makeText(ctx, ":(", Toast.LENGTH_SHORT);
-                                                }
-                                            });
-                                        }
+                                                            Log.d(TAG, "Billing for " + amount);
 
-                                        @Override
-                                        public void onFailure(NessieError error) {
-                                            Log.d(TAG, "Error: " + error.getMessage());
-                                            Toast.makeText(ctx, ":(", Toast.LENGTH_SHORT);
-                                        }
-                                    });
+                                                            client.BILL.createBill(id, new Bill.Builder()
+                                                                    .nickname(finalMsg)
+                                                                    .payee(task.getCustomerId())
+                                                                    .paymentAmount(amount)
+                                                                    .recurringDate(1)
+                                                                    .paymentDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()))
+                                                                    .status(BillStatus.PENDING)
+                                                                    .build(), new NessieResultsListener() {
+                                                                @Override
+                                                                public void onSuccess(Object result) {
+                                                                    editor.markTaskBilled(task.getId());
+                                                                    Toast.makeText(ctx, "Bill successfully sent.", Toast.LENGTH_SHORT).show();
+                                                                }
+
+                                                                @Override
+                                                                public void onFailure(NessieError error) {
+                                                                    Log.d(TAG, "Error: " + error.getMessage());
+                                                                    Toast.makeText(ctx, ":(", Toast.LENGTH_SHORT);
+                                                                }
+                                                            });
+                                                        }
+
+                                                        @Override
+                                                        public void onFailure(NessieError error) {
+                                                            Log.d(TAG, "Error: " + error.getMessage());
+                                                            Toast.makeText(ctx, ":(", Toast.LENGTH_SHORT);
+                                                        }
+                                                    });
+                                                }
+                                            })
+                                            .show();
                                 }
                             })
                             .show();

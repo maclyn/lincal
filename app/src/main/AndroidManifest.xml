@@ -26,6 +26,7 @@
             android:name=".AddTaskActivity"
             android:label="@string/title_activity_add_task"
             android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -35,7 +36,11 @@
         <service
             android:name=".TimerService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false" />
+        <service
+            android:name=".ReminderService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
