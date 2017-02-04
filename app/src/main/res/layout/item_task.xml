@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginBottom="4dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardElevation="4dp"
+        app:cardUseCompatPadding="true"
+        app:cardMaxElevation="4dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_alignParentLeft="true"
+                android:id="@+id/task_card_background"
+                android:background="@color/colorPrimary"
+                android:layout_width="60dp"
+                android:layout_height="80dp">
+
+                <ImageView
+                    android:src="@drawable/white_circle"
+                    android:layout_gravity="center"
+                    android:background="@drawable/white_circle"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp" />
+
+                <ImageView
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_today_black_24dp"
+                    android:id="@+id/task_card_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_toRightOf="@+id/task_card_background"
+                android:layout_width="match_parent"
+                android:layout_height="80dp">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="8dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/task_name"
+                        android:text="Photography"
+                        android:singleLine="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/primary_text_light"
+                        style="@style/TextAppearance.AppCompat.Medium"/>
+
+                    <TextView
+                        android:id="@+id/task_details"
+                        android:text="Details"
+                        android:singleLine="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"/>
+                </LinearLayout>
+            </FrameLayout>
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+</FrameLayout>

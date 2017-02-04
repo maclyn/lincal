@@ -1,18 +1,51 @@
 package com.inipage.lincal;
 
+import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.NumberPicker;
+import android.widget.TimePicker;
+import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class AddTaskActivity extends AppCompatActivity {
+    int hourOfDay = 12;
+    int minuteOfDay = 0;
+
+    EditText name;
+    RecyclerView iconPicker;
+    IVPickerAdapter iconAdapter;
+    RecyclerView colorPicker;
+    IVPickerAdapter colorAdapter;
+    Button reminderTime;
+    Button reminderDow;
+    NumberPicker countPicker;
+
+    ///Expediency is the mortal enemy of accuracy
+    boolean sunday = false;
+    boolean monday = true;
+    boolean tuesday = true;
+    boolean wednesday = true;
+    boolean thursday = true;
+    boolean friday = true;
+    boolean saturday = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,12 +55,88 @@ public class AddTaskActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        RecyclerView iconPicker = (RecyclerView) findViewById(R.id.new_task_icon_picker);
-        RecyclerView colorPicker = (RecyclerView) findViewById(R.id.new_task_color_picker);
+        name = (EditText) findViewById(R.id.new_task_name);
+        iconPicker = (RecyclerView) findViewById(R.id.new_task_icon_picker);
+        colorPicker = (RecyclerView) findViewById(R.id.new_task_color_picker);
+        reminderTime = (Button) findViewById(R.id.reminder_time);
+        reminderDow = (Button) findViewById(R.id.reminder_dow);
+        countPicker = (NumberPicker) findViewById(R.id.count_picker);
+
         iconPicker.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         colorPicker.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        iconPicker.setAdapter(new IVPickerAdapter(new String[] { "ic_add_black_24dp", "ic_check_circle_black_24dp", "ic_history_black_24dp" }));
-        colorPicker.setAdapter(new IVPickerAdapter(new int[] {Color.BLACK, Color.BLUE, Color.RED, Color.GREEN}));
+        iconAdapter = new IVPickerAdapter(Constants.TASK_ICONS);
+        iconPicker.setAdapter(iconAdapter);
+        colorAdapter = new IVPickerAdapter(Constants.TASK_COLORS);
+        colorPicker.setAdapter(colorAdapter);
+        reminderTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new TimePickerDialog(view.getContext(), new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker timePicker, int hour, int minute) {
+                        hourOfDay = hour;
+                        minuteOfDay = minute;
+
+                        Date date = new Date();
+                        date.setHours(hourOfDay);
+                        date.setMinutes(minute);
+                        reminderTime.setText(new SimpleDateFormat("h:mm aa").format(date));
+                    }
+                }, hourOfDay, minuteOfDay, false).show();
+            }
+        });
+        reminderDow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final View customView = LayoutInflater.from(AddTaskActivity.this).inflate(R.layout.dialog_dow, null);
+
+                final CheckBox mondayView = (CheckBox) customView.findViewById(R.id.monday);
+                final CheckBox tuesdayView = (CheckBox) customView.findViewById(R.id.tuesday);
+                final CheckBox wednesdayView = (CheckBox) customView.findViewById(R.id.wednesday);
+                final CheckBox thursdayView = (CheckBox) customView.findViewById(R.id.thursday);
+                final CheckBox fridayView = (CheckBox) customView.findViewById(R.id.friday);
+                final CheckBox saturdayView = (CheckBox) customView.findViewById(R.id.saturday);
+                final CheckBox sundayView = (CheckBox) customView.findViewById(R.id.sunday);
+
+                mondayView.setChecked(monday);
+                tuesdayView.setChecked(tuesday);
+                wednesdayView.setChecked(wednesday);
+                thursdayView.setChecked(thursday);
+                fridayView.setChecked(friday);
+                saturdayView.setChecked(saturday);
+                sundayView.setChecked(sunday);
+
+                new AlertDialog.Builder(AddTaskActivity.this)
+                        .setTitle("Pick Reminder Days of Week")
+                        .setView(customView)
+                        .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                monday = mondayView.isChecked();
+                                tuesday = tuesdayView.isChecked();
+                                wednesday = wednesdayView.isChecked();
+                                thursday = thursdayView.isChecked();
+                                friday = fridayView.isChecked();
+                                saturday = saturdayView.isChecked();
+                                sunday = sundayView.isChecked();
+
+                                String buttonString = "";
+                                if(sunday) buttonString += "Su ";
+                                if(monday) buttonString += "Mo ";
+                                if(tuesday) buttonString += "Tu ";
+                                if(wednesday) buttonString += "We ";
+                                if(thursday) buttonString += "Th ";
+                                if(friday) buttonString += "Fr ";
+                                if(saturday) buttonString += "Sa";
+
+                                reminderDow.setText(buttonString);
+                            }
+                        })
+                        .show();
+            }
+        });
+        countPicker.setMinValue(0);
+        countPicker.setMaxValue(120);
     }
 
     @Override
@@ -40,8 +149,19 @@ public class AddTaskActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case R.id.action_save:
-                //TODO: Save
-                finish();
+                //TODO: Check for duplicate reminder times here
+                if(DatabaseEditor.getInstance(this).addNewTask(
+                        name.getText().toString(),
+                        iconAdapter.getSelectedResource(),
+                        colorAdapter.getSelectedColor(),
+                        reminderTime.getText().toString(),
+                        reminderDow.getText().toString(),
+                        countPicker.getValue())) {
+                    Toast.makeText(this, "Task saved.", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "You can't have duplicate task names.", Toast.LENGTH_SHORT).show();
+                }
                 return true;
         }
 

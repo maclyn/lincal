@@ -10,4 +10,9 @@
     <string name="name">Name</string>
     <string name="icon">Icon</string>
     <string name="color">Color</string>
+    <string name="reminder_time">Reminder Time</string>
+    <string name="reminder_dow">Reminder Days-of-Week</string>
+    <string name="reminder_unless">(Unless I\'ve done</string>
+    <string name="dont_show_after">(Don\'t show after</string>
+    <string name="minutes_of_it">minutes of it.)</string>
 </resources>

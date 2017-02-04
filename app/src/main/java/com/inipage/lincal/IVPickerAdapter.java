@@ -54,8 +54,7 @@ public class IVPickerAdapter extends RecyclerView.Adapter<IVPickerAdapter.IVPick
         if(mode == PICKER_TYPE_COLOR){
             holder.iv.setBackgroundColor(mColorList[position]);
         } else {
-            holder.iv.setImageResource(holder.context.getResources()
-                    .getIdentifier(mResourceNames[selectedItem], "drawable", holder.context.getPackageName()));
+            holder.iv.setImageResource(holder.context.getResources().getIdentifier(mResourceNames[position], "drawable", holder.context.getPackageName()));
         }
         holder.check.setVisibility(position == selectedItem ? View.VISIBLE : View.GONE);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
