@@ -24,7 +24,7 @@
                 android:id="@+id/task_card_background"
                 android:background="@color/colorPrimary"
                 android:layout_width="60dp"
-                android:layout_height="88dp">
+                android:layout_height="76dp">
 
                 <ImageView
                     android:src="@drawable/white_circle"
@@ -44,7 +44,7 @@
             <FrameLayout
                 android:layout_toRightOf="@+id/task_card_background"
                 android:layout_width="match_parent"
-                android:layout_height="88dp">
+                android:layout_height="76dp">
 
                 <LinearLayout
                     android:orientation="vertical"
@@ -70,14 +70,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"/>
-
-                    <Button
-                        style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                        android:text="Bill"
-                        android:id="@+id/bill_button"
-                        android:layout_gravity="center_vertical"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </FrameLayout>
         </RelativeLayout>

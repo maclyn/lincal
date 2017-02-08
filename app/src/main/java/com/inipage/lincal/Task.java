@@ -3,6 +3,7 @@ package com.inipage.lincal;
 import android.database.Cursor;
 
 import java.util.Date;
+import java.util.Locale;
 
 public class Task {
     private long id;
@@ -12,12 +13,11 @@ public class Task {
     private String reminderDow;
     private String reminderTime;
     private int reminderThreshold;
-    private String customerId;
 
     //Transient fields; populated as need on-the-fly
     private Date reminderDate;
 
-    public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold, String customerId) {
+    public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold) {
         this.id = id;
         this.name = name;
         this.icon = icon;
@@ -25,7 +25,6 @@ public class Task {
         this.reminderDow = reminderDow;
         this.reminderTime = reminderTime;
         this.reminderThreshold = reminderThreshold;
-        this.customerId = customerId;
     }
 
     public long getId() {
@@ -48,6 +47,22 @@ public class Task {
         return reminderDow;
     }
 
+    private int[] calDows = null;
+    public int[] getReminderDowAsCalDow(){
+        if(calDows != null) return calDows;
+
+        String[] dows = reminderDow.split(" ");
+        calDows = new int[dows.length];
+        for(int i = 0; i < dows.length; i++){
+            for(int j = 0; j < DatabaseHelper.DB_DOW_ENTRIES.length; j++){
+                if(dows[i].toLowerCase(Locale.US).equals(DatabaseHelper.DB_DOW_ENTRIES[j]))
+                    calDows[i] = DatabaseHelper.DB_DOW_CAL_FIELDS[j];
+            }
+        }
+
+        return calDows;
+    }
+
     public String getReminderTime() {
         return reminderTime;
     }
@@ -68,9 +83,5 @@ public class Task {
 
     public int getReminderThreshold() {
         return reminderThreshold;
-    }
-
-    public String getCustomerId() {
-        return customerId;
     }
 }

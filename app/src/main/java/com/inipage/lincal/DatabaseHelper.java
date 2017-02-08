@@ -10,7 +10,7 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String FILENAME = "database.db";
-    public static final int VERSION = 4;
+    public static final int VERSION = 5;
 
     public static final SimpleDateFormat DB_REMINDER_TIME_FORMAT = new SimpleDateFormat("h:mm aa", Locale.US);
     public static final SimpleDateFormat DB_RECORD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -28,7 +28,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TASKS_REMINDER_TIME_COL_NAME = "reminder_time";
     public static final String TASKS_REMINDER_THRESHOLD_COL_NAME = "reminder_threshold";
     public static final String TASKS_REMINDER_DOW_COL_NAME = "reminder_dow";
-    public static final String TASKS_CUSTOMER_ID_COL_NAME = "customer_id";
     private static final String CREATE_TABLE_TASKS = "CREATE TABLE \"" + TASKS_TABLE_NAME + "\" (\n" +
             "\t`" + TASKS_ID_COL_NAME + "`\tINTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,\n" +
             "\t`" + TASKS_NAME_COL_NAME + "`\tTEXT NOT NULL UNIQUE,\n" +
@@ -36,7 +35,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "\t`" + TASKS_REMINDER_DOW_COL_NAME + "`\tTEXT,\n" +
             "\t`" + TASKS_COLOR_COL_NAME + "`\tINTEGER NOT NULL,\n" +
             "\t`" + TASKS_REMINDER_TIME_COL_NAME + "`\tTEXT NOT NULL,\n" +
-            "\t`" + TASKS_CUSTOMER_ID_COL_NAME + "`\tTEXT NOT NULL,\n" +
             "\t`" + TASKS_REMINDER_THRESHOLD_COL_NAME + "`\tINTEGER\n" +
             ")";
 
@@ -47,7 +45,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String RECORDS_END_TIME_COL_NAME = "end_time";
     public static final String RECORDS_TOTAL_TIME_COL_NAME = "total_time";
     public static final String RECORDS_NOTES_COL_NAME = "notes";
-    public static final String RECORDS_BILLED_COL_NAME = "billed";
     private static final String CREATE_TABLE_RECORDS = "CREATE TABLE `" + RECORDS_TABLE_NAME + "` (\n" +
             "\t`" + RECORDS_ID_COL_NAME + "`\tINTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,\n" +
             "\t`" + RECORDS_TASK_ID_COL_NAME + "`\tINTEGER NOT NULL,\n" +
@@ -55,7 +52,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "\t`" + RECORDS_END_TIME_COL_NAME + "`\tTEXT NOT NULL UNIQUE,\n" +
             "\t`" + RECORDS_TOTAL_TIME_COL_NAME + "`\tINTEGER NOT NULL,\n" +
             "\t`" + RECORDS_NOTES_COL_NAME + "`\tTEXT,\n" +
-            "\t`" + RECORDS_BILLED_COL_NAME +"`\tINTEGER NOT NULL,\n" +
             "\tFOREIGN KEY(`" + RECORDS_TASK_ID_COL_NAME + "`) REFERENCES tasks(id)\n" +
             ")";
 

@@ -14,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 
@@ -62,22 +64,37 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.TaskVH> {
         holder.title.setText(mTasks.get(position).getName());
         int secondsSoFar = mTasks.get(position).getSecondsSoFar();
         holder.cardView.setCardBackgroundColor(ctx.getResources().getColor(R.color.white));
-        if(mTasks.get(position).getReminderThreshold() != 0) {
-            holder.amountComplete.setVisibility(View.VISIBLE);
-            holder.amountComplete.setMax(mTasks.get(position).getReminderThreshold() * 60);
-            holder.amountComplete.setProgress(secondsSoFar);
 
-            if(secondsSoFar >= mTasks.get(position).getReminderThreshold() * 60){
-                holder.cardView.setCardBackgroundColor(Color.parseColor("#C8E6C9"));
-            } else {
-                holder.cardView.setCardBackgroundColor(Color.parseColor("#ffcdd2"));
+        Task task = mTasks.get(position);
+        holder.amountComplete.setVisibility(View.GONE);
+
+        reminderBarSetter: {
+            if (task.getReminderThreshold() != 0) {
+                //Not _necessarily_ important this day of week
+                int todayDow = new GregorianCalendar().get(Calendar.DAY_OF_WEEK);
+                boolean validDay = false;
+                for (int dow : task.getReminderDowAsCalDow()) {
+                    if (dow == todayDow) {
+                        validDay = true;
+                        break;
+                    }
+                }
+                if(!validDay) break reminderBarSetter;
+
+                holder.amountComplete.setVisibility(View.VISIBLE);
+                holder.amountComplete.setMax(mTasks.get(position).getReminderThreshold() * 60);
+                holder.amountComplete.setProgress(secondsSoFar);
+
+                if (secondsSoFar >= mTasks.get(position).getReminderThreshold() * 60) {
+                    holder.cardView.setCardBackgroundColor(Color.parseColor("#C8E6C9"));
+                } else {
+                    holder.cardView.setCardBackgroundColor(Color.parseColor("#ffcdd2"));
+                }
             }
-        } else {
-            holder.amountComplete.setVisibility(View.GONE);
         }
 
         int minutes = (int) Math.floor(secondsSoFar / 60);
-        int seconds = (int) (secondsSoFar - (minutes * 60));
+        int seconds = (secondsSoFar - (minutes * 60));
         holder.timeToday.setText(minutes + "m" + (seconds > 10 ? seconds : "0" + seconds) + "s today");
 
         boolean runningTimer = mTasks.get(position).getId() == TimerService.mTaskId;

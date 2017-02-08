@@ -34,7 +34,6 @@ public class DatabaseEditor {
         cv.put(DatabaseHelper.TASKS_REMINDER_TIME_COL_NAME, time);
         cv.put(DatabaseHelper.TASKS_REMINDER_DOW_COL_NAME, daysOfWeek.toLowerCase());
         cv.put(DatabaseHelper.TASKS_REMINDER_THRESHOLD_COL_NAME, minutesForReminder);
-        cv.put(DatabaseHelper.TASKS_CUSTOMER_ID_COL_NAME, customerId);
         long result = db.insert(DatabaseHelper.TASKS_TABLE_NAME, null, cv);
         return result != -1L;
     }
@@ -50,7 +49,6 @@ public class DatabaseEditor {
             int reminderTimeCol = c.getColumnIndex(DatabaseHelper.TASKS_REMINDER_TIME_COL_NAME);
             int reminderDowCol = c.getColumnIndex(DatabaseHelper.TASKS_REMINDER_DOW_COL_NAME);
             int reminderThresholdCol = c.getColumnIndex(DatabaseHelper.TASKS_REMINDER_THRESHOLD_COL_NAME);
-            int reminderCustIdCol = c.getColumnIndex(DatabaseHelper.TASKS_CUSTOMER_ID_COL_NAME);
 
             while(!c.isAfterLast()){
                 tasks.add(new Task(
@@ -60,8 +58,7 @@ public class DatabaseEditor {
                         c.getInt(colorCol),
                         c.getString(reminderDowCol),
                         c.getString(reminderTimeCol),
-                        c.getInt(reminderThresholdCol),
-                        c.getString(reminderCustIdCol)
+                        c.getInt(reminderThresholdCol)
                 ));
                 c.moveToNext();
             }
@@ -95,7 +92,6 @@ public class DatabaseEditor {
     public boolean addNewRecord(long taskId, int totalTimeSeconds, String note, Date startTime, Date endTime){
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHelper.RECORDS_TASK_ID_COL_NAME, taskId);
-        cv.put(DatabaseHelper.RECORDS_BILLED_COL_NAME, 0);
         cv.put(DatabaseHelper.RECORDS_NOTES_COL_NAME, note);
         cv.put(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME, totalTimeSeconds);
         cv.put(DatabaseHelper.RECORDS_START_TIME_COL_NAME, DatabaseHelper.DB_RECORD_DATE_FORMAT.format(startTime));
@@ -110,7 +106,7 @@ public class DatabaseEditor {
      * @return The records.
      */
     public List<Record> getRecordsSortedByDay(){
-        Cursor c = db.rawQuery("SELECT tasks.id AS task_id, records.id AS record_id, records.end_time, records.billed, records.start_time, records.notes, records.total_time, tasks.name, tasks.customer_id, tasks.color FROM records INNER JOIN tasks ON records.task_id = tasks.id ORDER BY datetime(records.start_time) ASC", new String[]{});
+        Cursor c = db.rawQuery("SELECT tasks.id AS task_id, records.id AS record_id, records.end_time, records.start_time, records.notes, records.total_time, tasks.name, tasks.color FROM records INNER JOIN tasks ON records.task_id = tasks.id ORDER BY datetime(records.start_time) ASC", new String[]{});
         List<Record> records = new ArrayList<>();
         if(c.moveToFirst()){
             int idCol = c.getColumnIndex("record_id");
@@ -118,12 +114,10 @@ public class DatabaseEditor {
             int totalTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME);
             int startTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_START_TIME_COL_NAME);
             int endTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_END_TIME_COL_NAME);
-            int billedCol = c.getColumnIndex(DatabaseHelper.RECORDS_BILLED_COL_NAME);
 
             int taskIdCol = c.getColumnIndex("task_id");
             int taskColorCol = c.getColumnIndex(DatabaseHelper.TASKS_COLOR_COL_NAME);
             int taskNameCol = c.getColumnIndex(DatabaseHelper.TASKS_NAME_COL_NAME);
-            int taskCustomerIdCol = c.getColumnIndex(DatabaseHelper.TASKS_CUSTOMER_ID_COL_NAME);
 
             while(!c.isAfterLast()){
                 try {
@@ -133,11 +127,9 @@ public class DatabaseEditor {
                             c.getInt(totalTimeCol),
                             DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(startTimeCol)),
                             DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(endTimeCol)),
-                            c.getInt(billedCol),
                             c.getLong(taskIdCol),
                             c.getLong(taskColorCol),
-                            c.getString(taskNameCol),
-                            c.getString(taskCustomerIdCol)
+                            c.getString(taskNameCol)
                     ));
                 } catch (ParseException ignored) {
                 }
@@ -159,57 +151,6 @@ public class DatabaseEditor {
     public void deleteTask(long taskId) {
         db.delete(DatabaseHelper.TASKS_TABLE_NAME, DatabaseHelper.TASKS_ID_COL_NAME + "=?", new String[] { String.valueOf(taskId) });
         db.delete(DatabaseHelper.RECORDS_TABLE_NAME, DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?", new String[] { String.valueOf(taskId) });
-    }
-
-    public long getUnbilledTimeForTask(long taskId) {
-        long time = 0;
-        Cursor c = db.query(DatabaseHelper.RECORDS_TABLE_NAME, null, DatabaseHelper.RECORDS_BILLED_COL_NAME + "=? AND " + DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?",
-                new String[] { String.valueOf(0), String.valueOf(taskId) }, null, null, null);
-        if(c.moveToFirst()){
-            int totalTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME);
-            while(!c.isAfterLast()){
-                time += c.getInt(totalTimeCol);
-                c.moveToNext();
-            }
-        }
-        c.close();
-        return time;
-    }
-
-    static final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd");
-    static final SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm aa");
-
-    public String getUnbilledNotesForTask(long taskId){
-        String notes = "";
-        Cursor c = db.query(DatabaseHelper.RECORDS_TABLE_NAME, null, DatabaseHelper.RECORDS_BILLED_COL_NAME + "=? AND " + DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?",
-                new String[] { String.valueOf(0), String.valueOf(taskId) }, null, null, null);
-        if(c.moveToFirst()){
-            int notesCol = c.getColumnIndex(DatabaseHelper.RECORDS_NOTES_COL_NAME);
-            int startTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_START_TIME_COL_NAME);
-            int endTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_END_TIME_COL_NAME);
-
-            while(!c.isAfterLast()){
-                try {
-                    String note = c.getString(notesCol);
-                    Date startDate = DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(startTimeCol));
-                    Date endDate = DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(endTimeCol));
-
-                    notes += dateFormat.format(startDate);
-                    notes += "\n" + timeFormat.format(startDate) + "-" + timeFormat.format(endDate) + "\n";
-                    notes += note + "\n\n";
-                    c.moveToNext();
-                } catch (Exception ignored) {}
-            }
-        }
-        c.close();
-        return notes;
-    }
-
-    public void markTaskBilled(long taskId){
-        ContentValues cv = new ContentValues();
-        cv.put(DatabaseHelper.RECORDS_BILLED_COL_NAME, 1);
-        db.update(DatabaseHelper.RECORDS_TABLE_NAME, cv, DatabaseHelper.RECORDS_BILLED_COL_NAME + "=? AND " + DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?",
-                new String[] { String.valueOf(0), String.valueOf(taskId) });
     }
 
     public void editNoteForRecord(long recordId, String note) {

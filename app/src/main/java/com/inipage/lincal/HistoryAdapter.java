@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 
@@ -21,7 +22,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     public class HistoryVH extends RecyclerView.ViewHolder {
         TextView date;
         TextView timeRange;
-        TextView billed;
         TextView notes;
         TextView taskName;
 
@@ -30,7 +30,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
             date = (TextView) itemView.findViewById(R.id.date_string);
             timeRange = (TextView) itemView.findViewById(R.id.time_range);
-            billed = (TextView) itemView.findViewById(R.id.billed_footer);
             notes = (TextView) itemView.findViewById(R.id.notes);
             taskName = (TextView) itemView.findViewById(R.id.task_name);
         }
@@ -54,19 +53,28 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     public void onBindViewHolder(final HistoryVH holder, int position) {
         Record r = mRecords.get(position);
         holder.taskName.setText(r.getTaskName());
-        if(r.getTaskCustomerId() != null && !r.getTaskCustomerId().isEmpty()){
-            holder.billed.setVisibility(View.VISIBLE);
-            holder.billed.setText(r.getBilled() == 1 ? "Billed" : "Not yet billed");
-        } else {
-            holder.billed.setVisibility(View.GONE);
-        }
         if(r.getNote() != null && r.getNote().length() > 0) {
             holder.notes.setVisibility(View.VISIBLE);
             holder.notes.setText(r.getNote());
         } else {
             holder.notes.setVisibility(View.GONE);
         }
-        holder.date.setText(dateFormat.format(r.getStartTime()));
+
+        if(position != 0){
+            Record prev = mRecords.get(position - 1);
+            Date thisDay = r.getStartTime();
+            Date prevEntryDay = prev.getStartTime();
+
+            if(thisDay.getDay() == prevEntryDay.getDay() && thisDay.getMonth() == prevEntryDay.getMonth()
+                    && thisDay.getYear() == prevEntryDay.getYear()){
+                holder.date.setText("");
+            } else {
+                holder.date.setText(dateFormat.format(thisDay));
+            }
+        } else {
+            holder.date.setVisibility(View.VISIBLE);
+            holder.date.setText(dateFormat.format(r.getStartTime()));
+        }
         holder.timeRange.setText(timeFormat.format(r.getStartTime()) + " - " + timeFormat.format(r.getEndTime()));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

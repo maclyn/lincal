@@ -4,7 +4,7 @@ public class TaskToday extends Task {
     private int secondsSoFar;
 
     public TaskToday(Task t, int secondsSoFar) {
-        super(t.getId(), t.getName(), t.getIcon(), t.getColor(), t.getReminderDow(), t.getReminderTime(), t.getReminderThreshold(), t.getCustomerId());
+        super(t.getId(), t.getName(), t.getIcon(), t.getColor(), t.getReminderDow(), t.getReminderTime(), t.getReminderThreshold());
         this.secondsSoFar = secondsSoFar;
     }
 
