@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.provider.ContactsContract;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -99,8 +98,8 @@ public class DatabaseEditor {
         cv.put(DatabaseHelper.RECORDS_BILLED_COL_NAME, 0);
         cv.put(DatabaseHelper.RECORDS_NOTES_COL_NAME, note);
         cv.put(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME, totalTimeSeconds);
-        cv.put(DatabaseHelper.RECORDS_START_TIME_COL_NAME, DatabaseHelper.DB_DATE_FORMAT.format(startTime));
-        cv.put(DatabaseHelper.RECORDS_END_TIME_COL_NAME, DatabaseHelper.DB_DATE_FORMAT.format(endTime));
+        cv.put(DatabaseHelper.RECORDS_START_TIME_COL_NAME, DatabaseHelper.DB_RECORD_DATE_FORMAT.format(startTime));
+        cv.put(DatabaseHelper.RECORDS_END_TIME_COL_NAME, DatabaseHelper.DB_RECORD_DATE_FORMAT.format(endTime));
         long result = db.insert(DatabaseHelper.RECORDS_TABLE_NAME, null, cv);
         return result != -1L;
     }
@@ -132,8 +131,8 @@ public class DatabaseEditor {
                             c.getLong(idCol),
                             c.getString(notesCol),
                             c.getInt(totalTimeCol),
-                            DatabaseHelper.DB_DATE_FORMAT.parse(c.getString(startTimeCol)),
-                            DatabaseHelper.DB_DATE_FORMAT.parse(c.getString(endTimeCol)),
+                            DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(startTimeCol)),
+                            DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(endTimeCol)),
                             c.getInt(billedCol),
                             c.getLong(taskIdCol),
                             c.getLong(taskColorCol),
@@ -192,8 +191,8 @@ public class DatabaseEditor {
             while(!c.isAfterLast()){
                 try {
                     String note = c.getString(notesCol);
-                    Date startDate = DatabaseHelper.DB_DATE_FORMAT.parse(c.getString(startTimeCol));
-                    Date endDate = DatabaseHelper.DB_DATE_FORMAT.parse(c.getString(endTimeCol));
+                    Date startDate = DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(startTimeCol));
+                    Date endDate = DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(endTimeCol));
 
                     notes += dateFormat.format(startDate);
                     notes += "\n" + timeFormat.format(startDate) + "-" + timeFormat.format(endDate) + "\n";

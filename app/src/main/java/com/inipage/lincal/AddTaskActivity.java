@@ -2,6 +2,7 @@ package com.inipage.lincal;
 
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -93,7 +94,8 @@ public class AddTaskActivity extends AppCompatActivity {
                         Date date = new Date();
                         date.setHours(hourOfDay);
                         date.setMinutes(minute);
-                        reminderTime.setText(new SimpleDateFormat("h:mm aa").format(date));
+
+                        reminderTime.setText(DatabaseHelper.DB_REMINDER_TIME_FORMAT.format(date));
                     }
                 }, hourOfDay, minuteOfDay, false).show();
             }
@@ -214,6 +216,11 @@ public class AddTaskActivity extends AppCompatActivity {
                         enableReminder.isChecked() ? countPicker.getValue() : 0,
                         customerId == null ? "" : customerId)) {
                     Toast.makeText(this, "Task saved.", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent(this, ReminderService.class);
+                    intent.setAction(ReminderService.ACTION_UPDATE_REMINDERS);
+                    startService(intent);
+
                     finish();
                 } else {
                     Toast.makeText(this, "You can't have duplicate task names.", Toast.LENGTH_SHORT).show();

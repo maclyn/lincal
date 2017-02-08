@@ -2,9 +2,7 @@ package com.inipage.lincal;
 
 import android.database.Cursor;
 
-/**
- * Created by Maclyn on 2/4/2017.
- */
+import java.util.Date;
 
 public class Task {
     private long id;
@@ -15,6 +13,9 @@ public class Task {
     private String reminderTime;
     private int reminderThreshold;
     private String customerId;
+
+    //Transient fields; populated as need on-the-fly
+    private Date reminderDate;
 
     public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold, String customerId) {
         this.id = id;
@@ -49,6 +50,20 @@ public class Task {
 
     public String getReminderTime() {
         return reminderTime;
+    }
+
+    public boolean hasReminder(){
+        return reminderThreshold != 0;
+    }
+
+    public Date getReminderTimeAsDate(){
+        try {
+            return reminderDate == null ?
+                    (reminderDate = DatabaseHelper.DB_REMINDER_TIME_FORMAT.parse(reminderTime)) :
+                    reminderDate;
+        } catch (Exception e){
+            return null;
+        }
     }
 
     public int getReminderThreshold() {

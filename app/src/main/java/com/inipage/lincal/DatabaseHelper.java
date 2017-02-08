@@ -5,12 +5,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String FILENAME = "database.db";
     public static final int VERSION = 4;
-    public static final SimpleDateFormat DB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+    public static final SimpleDateFormat DB_REMINDER_TIME_FORMAT = new SimpleDateFormat("h:mm aa", Locale.US);
+    public static final SimpleDateFormat DB_RECORD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+    public static final String[] DB_DOW_ENTRIES = new String[] { "su", "mo", "tu", "we", "th", "fr",
+            "sa" };
+    public static final int[] DB_DOW_CAL_FIELDS = new int[] { Calendar.SUNDAY, Calendar.MONDAY,
+            Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY,
+            Calendar.SATURDAY};
 
     public static final String TASKS_TABLE_NAME = "tasks";
     public static final String TASKS_ID_COL_NAME = "id";
