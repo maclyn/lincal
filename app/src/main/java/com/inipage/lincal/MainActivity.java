@@ -16,6 +16,7 @@ import com.inipage.lincal.ui.DummyFragment;
 import com.inipage.lincal.ui.HistoryFragment;
 import com.inipage.lincal.ui.TaskMgmtFragment;
 import com.inipage.lincal.ui.TodayFragment;
+import com.inipage.lincal.ui.TodoFragment;
 
 public class MainActivity extends AppCompatActivity implements
         BottomNavigationView.OnNavigationItemSelectedListener {
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements
                 fragmentForReplacing = TodayFragment.newInstance();
                 break;
             case R.id.todo:
-                fragmentForReplacing = DummyFragment.newInstance();
+                fragmentForReplacing = TodoFragment.newInstance();
                 break;
             case R.id.history:
                 fragmentForReplacing = HistoryFragment.newInstance();

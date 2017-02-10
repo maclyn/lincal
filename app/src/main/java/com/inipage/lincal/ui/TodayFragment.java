@@ -58,8 +58,9 @@ public class TodayFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        /*
         taskView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        final List<TaskToday> tasks = DatabaseEditor.getInstance(getActivity()).getTasksWithTimeSpentToday(false);
+        final List<TaskToday> tasks = DatabaseEditor.getInstance(getActivity()).getTasksWithRemindersAndTimeSpentToday(false);
         Collections.sort(tasks, new Comparator<TaskToday>() {
             @Override
             public int compare(TaskToday taskToday, TaskToday t1) {
@@ -68,28 +69,11 @@ public class TodayFragment extends Fragment {
         });
         adapter = new TodayAdapter(tasks);
         taskView.setAdapter(adapter);
-
-        receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                int taskLocation = 0;
-                for(TaskToday t : tasks){
-                    if(t.getId() == intent.getLongExtra(TimerService.EXTRA_TASK_ID, -1))
-                        break;
-                    taskLocation++;
-                }
-                tasks.get(taskLocation).setSecondsSoFar(tasks.get(taskLocation).getSecondsSoFar() + intent.getIntExtra(TimerService.EXTRA_ADDED_SECONDS, 0));
-                adapter.notifyItemChanged(taskLocation);
-            }
-        };
-        IntentFilter filter = new IntentFilter(TimerService.BROADCAST_TIMER_STARTED);
-        filter.addAction(TimerService.BROADCAST_TIMER_STOPPED);
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(receiver, filter);
+            */
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(receiver);
     }
 }

@@ -1,11 +1,15 @@
 package com.inipage.lincal.ui;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,14 +22,23 @@ import android.widget.LinearLayout;
 
 import com.inipage.lincal.AddTaskActivity;
 import com.inipage.lincal.R;
+import com.inipage.lincal.background.TimerService;
 import com.inipage.lincal.db.DatabaseEditor;
+import com.inipage.lincal.model.Task;
+import com.inipage.lincal.model.TaskToday;
+
+import java.util.List;
 
 public class TaskMgmtFragment extends Fragment {
     FloatingActionButton addTask;
     RecyclerView taskView;
     Toolbar toolbar;
+    TaskAdapter adapter;
 
+    List<Task> tasks;
     boolean includeArchived = false;
+
+    BroadcastReceiver timerReceiver;
 
     public TaskMgmtFragment(){
     }
@@ -82,16 +95,40 @@ public class TaskMgmtFragment extends Fragment {
                 return true;
             }
         });
+        timerReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int taskLocation = 0;
+                for(Task t : tasks){
+                    if(t.getId() == intent.getLongExtra(TimerService.EXTRA_TASK_ID, -1))
+                        break;
+                    taskLocation++;
+                }
+                adapter.notifyItemChanged(taskLocation);
+            }
+        };
+        IntentFilter filter = new IntentFilter(TimerService.BROADCAST_TIMER_STARTED);
+        filter.addAction(TimerService.BROADCAST_TIMER_STOPPED);
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(timerReceiver, filter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(timerReceiver);
     }
 
     private void setAdapter(){
         taskView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        taskView.setAdapter(new TaskAdapter(DatabaseEditor.getInstance(getActivity()).getTasks(includeArchived),
-                new TaskAdapter.ReloadListener() {
-            @Override
-            public void onReloadNeeded() {
-                setAdapter();
-            }
-        }));
+        tasks = DatabaseEditor.getInstance(getActivity()).getTasks(includeArchived);
+        adapter = new TaskAdapter(tasks,
+            new TaskAdapter.ReloadListener() {
+                @Override
+                public void onReloadNeeded() {
+                    setAdapter();
+                }
+            });
+        taskView.setAdapter(adapter);
     }
 }

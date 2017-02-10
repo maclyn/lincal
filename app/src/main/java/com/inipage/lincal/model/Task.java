@@ -20,7 +20,9 @@ public class Task {
     private Date reminderDate;
     private int[] calDows = null;
 
-    public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold, int productivityLevel, boolean archived) {
+    public Task(long id, String name, String icon, int color, String reminderDow,
+                String reminderTime, int reminderThreshold, int productivityLevel,
+                boolean archived) {
         this.id = id;
         this.name = name;
         this.icon = icon;

@@ -13,6 +13,7 @@ import com.inipage.lincal.MainActivity;
 import com.inipage.lincal.R;
 import com.inipage.lincal.db.DatabaseEditor;
 import com.inipage.lincal.model.Task;
+import com.inipage.lincal.model.Todo;
 
 import java.util.Date;
 import java.util.Timer;
@@ -27,6 +28,7 @@ public class TimerService extends Service {
     public static final String ACTION_START_BREAK = "start_break";
 
     public static final String EXTRA_TASK_ID = "task_id";
+    public static final String EXTRA_TODO_ID = "todo_id";
     public static final String EXTRA_ADDED_SECONDS = "added_seconds";
 
     /** Broadcast to alert TaskToday of state changes. **/
@@ -51,10 +53,14 @@ public class TimerService extends Service {
     private static final int STATE_P_BREAK = 3;
 
     private int mState = STATE_DEAD;
+
     public static long mTaskId = -1;
+    public static long mTodoId = -1;
+
     private long mCachedTaskId = -1; //When saving state for post-break resume
     private long mStartTime = -1L;
     private Task mTask = null;
+    private Todo mTodo = null;
     private int mTaskDrawableId = -1;
     private Timer mTimer = new Timer();
 
@@ -79,8 +85,12 @@ public class TimerService extends Service {
 
                 //Start a timer for a given taskId
                 mTaskId = intent.getLongExtra(EXTRA_TASK_ID, -1);
+                mTodoId = intent.getLongExtra(EXTRA_TODO_ID, -1);
                 if(mTaskId == -1){ stopSelf(); return START_NOT_STICKY; }
                 mTask = DatabaseEditor.getInstance(this).getTask(mTaskId);
+                if (mTodoId != -1){
+                    mTodo = DatabaseEditor.getInstance(this).getTodo(mTodoId);
+                }
                 mTaskDrawableId = getResources().getIdentifier(mTask.getIcon(), "drawable", getPackageName());
 
                 TimerTask updateTimer = new TimerTask() {
@@ -97,6 +107,8 @@ public class TimerService extends Service {
 
                 Intent startIntent = new Intent(BROADCAST_TIMER_STARTED);
                 startIntent.putExtra(EXTRA_TASK_ID, mTaskId);
+                if(mTodoId != -1)
+                    startIntent.putExtra(EXTRA_TODO_ID, mTodoId);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(startIntent);
                 break;
             case ACTION_STOP_TIMER:
@@ -122,13 +134,19 @@ public class TimerService extends Service {
                 (int) (System.currentTimeMillis() - mStartTime) / 1000,
                 "Timed with LinCal timer",
                 new Date(mStartTime),
-                new Date(System.currentTimeMillis())
+                new Date(System.currentTimeMillis()),
+                mTodoId
         );
 
-        Intent startIntent = new Intent(BROADCAST_TIMER_STARTED);
+        Intent startIntent = new Intent(BROADCAST_TIMER_STOPPED);
         startIntent.putExtra(EXTRA_TASK_ID, mTaskId);
+        if(mTodoId != -1)
+            startIntent.putExtra(EXTRA_TODO_ID, mTodoId);
         startIntent.putExtra(EXTRA_ADDED_SECONDS, (int) (System.currentTimeMillis() - mStartTime) / 1000);
         mTaskId = -1;
+        mTodoId = -1;
+        mTask = null;
+        mTodo = null;
         LocalBroadcastManager.getInstance(this).sendBroadcast(startIntent);
     }
 
@@ -137,6 +155,7 @@ public class TimerService extends Service {
         Pair<Integer, Integer> calc = calcMinsAndSecs(0);
         if(mState == STATE_P_BREAK && (mStartTime + BREAK_DURATION >= now)) calc = calcMinsAndSecs(BREAK_DURATION);
         String msg = calc.first + ":" + calc.second;
+        String timingName = (mTodo == null ? mTask.getName() : mTodo.getTitle());
         if(calc.second < 10) msg = calc.first + ":0" + calc.second;
 
         switch(mState){
@@ -147,9 +166,9 @@ public class TimerService extends Service {
                     //Done with break! Annoy them once
                     NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this)
                             .setContentTitle("Break's over")
-                            .setContentText("Let's get back to working on " + mTask.getName())
+                            .setContentText("Let's get back to working on " + timingName)
                             .setPriority(Notification.PRIORITY_MAX)
-                            .setStyle(new NotificationCompat.BigTextStyle().bigText("Let's get back to working on " + mTask.getName()))
+                            .setStyle(new NotificationCompat.BigTextStyle().bigText("Let's get back to working on " + timingName))
                             .setSmallIcon(R.drawable.ic_alarm_black_24dp)
                             .setOngoing(true)
                             .setContentIntent(PendingIntent.getActivity(this, SHOW_ACTIVITY_PI_ID, new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT));
@@ -157,13 +176,13 @@ public class TimerService extends Service {
                 }
 
                 if (mStartTime + BREAK_DURATION > now){ //On break. Show "x:xx break time remaining"
-                    updateNotification(mTaskDrawableId, "On break from '" + mTask.getName() + "'", calc.first + ":" + calc.second + " break time remaining");
+                    updateNotification(mTaskDrawableId, "On break from '" + timingName + "'", calc.first + ":" + calc.second + " break time remaining");
                 } else { //Overdue. Show "Overtime on break by x seconds!"
                     updateNotification(mTaskDrawableId, "Overtime on break!", "Late by " + calc.first + ":" + calc.second + "!");
                 }
                 break;
             case STATE_POMODORO:
-                String pTitle = "Pomodoro timing '" + mTask.getName() + "'";
+                String pTitle = "Pomodoro timing '" + timingName + "'";
                 if (mStartTime + POMODORO_DURATION > now){
                     updateNotification(mTaskDrawableId, pTitle, msg);
                 } else { //Should break
@@ -171,7 +190,7 @@ public class TimerService extends Service {
                 }
                 break;
             case STATE_RUNNING: //Show 'Timing xxx'
-                updateNotification(mTaskDrawableId, "Timing '" + mTask.getName() + "'", msg);
+                updateNotification(mTaskDrawableId, "Timing '" + timingName + "'", msg);
                 break;
         }
     }
@@ -204,6 +223,8 @@ public class TimerService extends Service {
 
         Intent resumeI = new Intent(this, TimerService.class);
         resumeI.putExtra(EXTRA_TASK_ID, mCachedTaskId);
+        if(mTodoId != -1)
+            resumeI.putExtra(EXTRA_TODO_ID, mTodoId);
         resumeI.setAction(ACTION_START_POMODORO);
 
         PendingIntent stopIntent = PendingIntent.getService(this, STOP_TIMER_PI_ID, stopI, PendingIntent.FLAG_UPDATE_CURRENT);

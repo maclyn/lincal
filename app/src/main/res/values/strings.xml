@@ -26,4 +26,13 @@
     <string name="show_archived">Show archived</string>
     <string name="unarchive">Unarchive</string>
     <string name="edit_task">Edit Task</string>
+    <string name="short_sample">Sample text</string>
+    <string name="mark_all_done">Mark all done</string>
+    <string name="show_completed">Show completed</string>
+    <string name="title_activity_add_todo">Add New Todo</string>
+    <string name="title">Title</string>
+    <string name="todo_title">Todo Title</string>
+    <string name="due_date">Due Date</string>
+    <string name="importance">Importance</string>
+    <string name="parent_task">Parent Task</string>
 </resources>

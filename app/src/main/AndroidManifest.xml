@@ -23,7 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".AddTaskActivity"
             android:label="@string/title_activity_add_task"
@@ -39,7 +38,6 @@
             android:name=".background.TimerService"
             android:enabled="true"
             android:exported="false" />
-
         <service
             android:name=".background.ReminderService"
             android:enabled="true"
@@ -49,10 +47,19 @@
             android:name=".background.BootReceiver"
             android:enabled="true"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <activity android:name=".AddTodoActivity"
+            android:label="@string/title_activity_add_todo"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.inipage.lincal.MainActivity" />
+        </activity>
     </application>
 </manifest>

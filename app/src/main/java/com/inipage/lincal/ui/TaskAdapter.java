@@ -16,8 +16,10 @@ import android.widget.TextView;
 import com.inipage.lincal.AddTaskActivity;
 import com.inipage.lincal.R;
 import com.inipage.lincal.Utilities;
+import com.inipage.lincal.background.TimerService;
 import com.inipage.lincal.db.DatabaseEditor;
 import com.inipage.lincal.model.Task;
+import com.inipage.lincal.model.TaskToday;
 
 import java.util.List;
 
@@ -31,6 +33,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
         TextView subtitle;
         TextView productivity;
         View menu;
+        View timerStart;
+        View timerStop;
+        View pomodoro;
 
         public TaskVH(View itemView) {
             super(itemView);
@@ -40,6 +45,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
             subtitle = (TextView) itemView.findViewById(R.id.task_details);
             productivity = (TextView) itemView.findViewById(R.id.task_productivity);
             menu = itemView.findViewById(R.id.task_menu_button);
+            timerStart = itemView.findViewById(R.id.task_start_timer);
+            timerStop = itemView.findViewById(R.id.task_stop_timer);
+            pomodoro = itemView.findViewById(R.id.task_start_pomodoro);
         }
     }
 
@@ -124,6 +132,56 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
                     return true;
                 }
             });
+
+        //Setup timer start/stop/pomodoro buttons
+        if(task.isArchived()){
+            holder.timerStop.setVisibility(View.GONE);
+            holder.timerStart.setVisibility(View.GONE);
+            holder.pomodoro.setVisibility(View.GONE);
+            return;
+        }
+
+        boolean runningTimer = mTasks.get(position).getId() == TimerService.mTaskId;
+        holder.timerStop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
+        holder.timerStart.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
+        holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
+
+        holder.timerStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Task task = mTasks.get(holder.getAdapterPosition());
+                Context ctx = holder.itemView.getContext();
+
+                Intent serviceIntent = new Intent(ctx, TimerService.class);
+                serviceIntent.setAction(TimerService.ACTION_START_TIMER);
+                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
+                ctx.startService(serviceIntent);
+            }
+        });
+        holder.pomodoro.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Task task = mTasks.get(holder.getAdapterPosition());
+                Context ctx = holder.itemView.getContext();
+
+                Intent serviceIntent = new Intent(ctx, TimerService.class);
+                serviceIntent.setAction(TimerService.ACTION_START_POMODORO);
+                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
+                ctx.startService(serviceIntent);
+            }
+        });
+        holder.timerStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Task task = mTasks.get(holder.getAdapterPosition());
+                Context ctx = holder.itemView.getContext();
+
+                Intent serviceIntent = new Intent(ctx, TimerService.class);
+                serviceIntent.setAction(TimerService.ACTION_STOP_TIMER);
+                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
+                ctx.startService(serviceIntent);
+            }
+        });
     }
 
     private void toggleArchived(Context ctx, int position) {

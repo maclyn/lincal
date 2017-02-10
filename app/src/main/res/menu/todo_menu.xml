@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/mark_all_done"
+        android:title="@string/mark_all_done"
+        android:icon="@drawable/ic_done_all_white_24dp"
+        app:showAsAction="ifRoom"
+        android:checkable="false" />
+
+    <item
+        android:title="@string/show_completed"
+        android:checkable="true"
+        android:id="@+id/show_completed" />
+</menu>

@@ -2,10 +2,6 @@ package com.inipage.lincal.model;
 
 import java.util.Date;
 
-/**
- * Created by Maclyn on 2/4/2017.
- */
-
 public class Record {
     long id;
     String note;
@@ -15,8 +11,10 @@ public class Record {
     long taskId;
     long taskColor;
     String taskName;
+    int todoId;
 
-    public Record(long id, String note, int totalTime, Date startTime, Date endTime, long taskId, long taskColor, String taskName) {
+    public Record(long id, String note, int totalTime, Date startTime, Date endTime, long taskId,
+                  long taskColor, String taskName, int todoId) {
         this.id = id;
         this.note = note;
         this.totalTime = totalTime;
@@ -25,6 +23,7 @@ public class Record {
         this.taskId = taskId;
         this.taskColor = taskColor;
         this.taskName = taskName;
+        this.todoId = todoId;
     }
 
     public long getId() {
@@ -57,6 +56,14 @@ public class Record {
 
     public String getTaskName() {
         return taskName;
+    }
+
+    public int getTodoId() {
+        return todoId;
+    }
+
+    public boolean hasTodo(){
+        return todoId != -1;
     }
 
     public void setNote(String note) {

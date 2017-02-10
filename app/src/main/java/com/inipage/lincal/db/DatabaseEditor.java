@@ -4,10 +4,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 
 import com.inipage.lincal.model.Record;
 import com.inipage.lincal.model.Task;
 import com.inipage.lincal.model.TaskToday;
+import com.inipage.lincal.model.Todo;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -69,6 +71,25 @@ public class DatabaseEditor {
         return result != 0L;
     }
 
+    public boolean updateTodo(long todoId, String title, int importance, Date dueDate,
+                              long taskId, int isComplete){
+        ContentValues cv = new ContentValues();
+        if(title != null)
+            cv.put(DatabaseHelper.TODOS_TITLE_COL_NAME, title);
+        if(importance != -1)
+            cv.put(DatabaseHelper.TODOS_IMPORTANCE_COL_NAME, importance);
+        if(dueDate != null)
+            cv.put(DatabaseHelper.TODOS_DUE_DATE_COL_NAME, DatabaseHelper.DB_RECORD_DATE_FORMAT.format(dueDate));
+        if(taskId != -1)
+            cv.put(DatabaseHelper.TODOS_TASK_ID_COL_NAME, taskId);
+        if(isComplete != -1)
+            cv.put(DatabaseHelper.TODOS_COMPLETE_COL_NAME, isComplete);
+
+        long result = db.update(DatabaseHelper.TODOS_TABLE_NAME, cv,
+                DatabaseHelper.TODOS_ID_COL_NAME + "=?", new String[] { String.valueOf(todoId)});
+        return result != 0L;
+    }
+
     public List<Task> getTasks(boolean includeArchived){
         Cursor c = null;
         if(includeArchived)
@@ -109,10 +130,12 @@ public class DatabaseEditor {
     }
 
 
-    public List<TaskToday> getTasksWithTimeSpentToday(boolean includeArchived){
+    public List<TaskToday> getTasksWithRemindersAndTimeSpentToday(boolean includeArchived){
         List<Task> tasks = getTasks(includeArchived);
         List<TaskToday> todayTasks = new ArrayList<>();
-        for(Task t : tasks){
+        for(Task t : tasks){ //TODO: This would likely be faster using AGGREGATE operations, JOINS
+            if(t.getReminderThreshold() == 0) continue;
+
             Cursor c = db.rawQuery("SELECT  * FROM records WHERE date(records.start_time) = date('now') AND records.task_id=?",
                     new String[]{ String.valueOf(t.getId())});
             int secondsForTask = 0;
@@ -130,15 +153,70 @@ public class DatabaseEditor {
         return todayTasks;
     }
 
-    public boolean addNewRecord(long taskId, int totalTimeSeconds, String note, Date startTime, Date endTime){
+    public boolean addNewRecord(long taskId, int totalTimeSeconds, String note, Date startTime, Date endTime, long todoId){
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHelper.RECORDS_TASK_ID_COL_NAME, taskId);
         cv.put(DatabaseHelper.RECORDS_NOTES_COL_NAME, note);
         cv.put(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME, totalTimeSeconds);
         cv.put(DatabaseHelper.RECORDS_START_TIME_COL_NAME, DatabaseHelper.DB_RECORD_DATE_FORMAT.format(startTime));
         cv.put(DatabaseHelper.RECORDS_END_TIME_COL_NAME, DatabaseHelper.DB_RECORD_DATE_FORMAT.format(endTime));
+        cv.put(DatabaseHelper.RECORDS_TODO_ID_COL_NAME, todoId);
         long result = db.insert(DatabaseHelper.RECORDS_TABLE_NAME, null, cv);
         return result != -1L;
+    }
+
+    /**
+     * Get all todos for a given task (or just all todos).
+     * @param task The Task to fetch the todos for, or null.
+     * @param includeCompleted Whether or not to include completed todos.
+     * @return A list of all todos matching the parameters.
+     */
+    public List<Todo> getAllTodosSorted(@Nullable Task task, boolean includeCompleted){
+        Cursor c = null;
+        String completeField = includeCompleted ? "2" : "1";
+        if(task != null)
+            c = db.query(DatabaseHelper.TODOS_TABLE_NAME,
+                    null,
+                    DatabaseHelper.TODOS_TASK_ID_COL_NAME + "=? AND " + DatabaseHelper.TODOS_COMPLETE_COL_NAME + "<?",
+                    new String[] { String.valueOf(task.getId()), completeField },
+                    null,
+                    null,
+                    "date(" + DatabaseHelper.TODOS_DUE_DATE_COL_NAME + ") desc, " + DatabaseHelper.TODOS_IMPORTANCE_COL_NAME + " desc");
+        else
+            c = db.query(DatabaseHelper.TODOS_TABLE_NAME,
+                    null,
+                    DatabaseHelper.TODOS_COMPLETE_COL_NAME + "<?",
+                    new String[] { completeField },
+                    null,
+                    null,
+                    "date(" + DatabaseHelper.TODOS_DUE_DATE_COL_NAME + ") desc, " + DatabaseHelper.TODOS_IMPORTANCE_COL_NAME + " desc");
+
+        List<Todo> todos = new ArrayList<>(c.getCount());
+
+        if(c.moveToFirst()){
+            int idCol = c.getColumnIndex(DatabaseHelper.TODOS_ID_COL_NAME);
+            int titleCol = c.getColumnIndex(DatabaseHelper.TODOS_TITLE_COL_NAME);
+            int dueDateCol = c.getColumnIndex(DatabaseHelper.TODOS_DUE_DATE_COL_NAME);
+            int importanceCol = c.getColumnIndex(DatabaseHelper.TODOS_IMPORTANCE_COL_NAME);
+            int taskIdCol = c.getColumnIndex(DatabaseHelper.TODOS_TASK_ID_COL_NAME);
+            int completeCol = c.getColumnIndex(DatabaseHelper.TODOS_COMPLETE_COL_NAME);
+
+            while(!c.isAfterLast()){
+                todos.add(new Todo(
+                        c.getLong(idCol),
+                        c.getString(titleCol),
+                        c.getString(dueDateCol),
+                        c.getInt(completeCol) == 1,
+                        c.getLong(taskIdCol),
+                        c.getInt(importanceCol)
+                ));
+
+                c.moveToNext();
+            }
+        }
+
+        c.close();
+        return todos;
     }
 
     /**
@@ -147,7 +225,7 @@ public class DatabaseEditor {
      * @return The records.
      */
     public List<Record> getRecordsSortedByDay(){
-        Cursor c = db.rawQuery("SELECT tasks.id AS task_id, records.id AS record_id, records.end_time, records.start_time, records.notes, records.total_time, tasks.name, tasks.color FROM records INNER JOIN tasks ON records.task_id = tasks.id ORDER BY datetime(records.start_time) ASC", new String[]{});
+        Cursor c = db.rawQuery("SELECT tasks.id AS task_id, records.id AS record_id, records.todo_id, records.end_time, records.start_time, records.notes, records.total_time, tasks.name, tasks.color FROM records INNER JOIN tasks ON records.task_id = tasks.id ORDER BY datetime(records.start_time) ASC", new String[]{});
         List<Record> records = new ArrayList<>();
         if(c.moveToFirst()){
             int idCol = c.getColumnIndex("record_id");
@@ -155,6 +233,7 @@ public class DatabaseEditor {
             int totalTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_TOTAL_TIME_COL_NAME);
             int startTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_START_TIME_COL_NAME);
             int endTimeCol = c.getColumnIndex(DatabaseHelper.RECORDS_END_TIME_COL_NAME);
+            int todoId = c.getColumnIndex(DatabaseHelper.RECORDS_TODO_ID_COL_NAME);
 
             int taskIdCol = c.getColumnIndex("task_id");
             int taskColorCol = c.getColumnIndex(DatabaseHelper.TASKS_COLOR_COL_NAME);
@@ -170,7 +249,8 @@ public class DatabaseEditor {
                             DatabaseHelper.DB_RECORD_DATE_FORMAT.parse(c.getString(endTimeCol)),
                             c.getLong(taskIdCol),
                             c.getLong(taskColorCol),
-                            c.getString(taskNameCol)
+                            c.getString(taskNameCol),
+                            c.getInt(todoId)
                     ));
                 } catch (ParseException ignored) {
                 }
@@ -201,5 +281,24 @@ public class DatabaseEditor {
                 cv,
                 DatabaseHelper.RECORDS_ID_COL_NAME + "=?",
                 new String[] { String.valueOf(recordId) });
+    }
+
+    public boolean addNewTodo(String title, int importance, long taskId, Date dueDate) {
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHelper.TODOS_COMPLETE_COL_NAME, 0);
+        cv.put(DatabaseHelper.TODOS_DUE_DATE_COL_NAME, DatabaseHelper.DB_RECORD_DATE_FORMAT.format(dueDate));
+        cv.put(DatabaseHelper.TODOS_TASK_ID_COL_NAME, taskId);
+        cv.put(DatabaseHelper.TODOS_IMPORTANCE_COL_NAME, importance);
+        cv.put(DatabaseHelper.TODOS_TITLE_COL_NAME, title);
+        long result = db.insert(DatabaseHelper.TODOS_TABLE_NAME, null, cv);
+        return result != -1L;
+    }
+
+    public Todo getTodo(long todoId) {
+        List<Todo> todos = getAllTodosSorted(null, true);
+        for(Todo t : todos){ //Inefficient, but quick to write
+            if(t.getId() == todoId) return t;
+        }
+        return null;
     }
 }

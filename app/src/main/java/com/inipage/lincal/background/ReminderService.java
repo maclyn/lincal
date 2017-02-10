@@ -124,7 +124,7 @@ public class ReminderService extends Service {
             }
 
             //Notify for reminder; icon is the icon of the thing
-            List<TaskToday> tasksWithTimeSpent = DatabaseEditor.getInstance(this).getTasksWithTimeSpentToday(false);
+            List<TaskToday> tasksWithTimeSpent = DatabaseEditor.getInstance(this).getTasksWithRemindersAndTimeSpentToday(false);
             //O(n^2) sadness, but not too bad (usually just O(n) -- tasksToNotifyFor is like 1 normally
             List<TaskToday> toNotifyFor = new ArrayList<>();
             for(TaskToday task : tasksWithTimeSpent){
