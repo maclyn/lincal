@@ -36,17 +36,17 @@
         </activity>
 
         <service
-            android:name=".TimerService"
+            android:name=".background.TimerService"
             android:enabled="true"
             android:exported="false" />
 
         <service
-            android:name=".ReminderService"
+            android:name=".background.ReminderService"
             android:enabled="true"
             android:exported="true" />
 
         <receiver
-            android:name=".BootReceiver"
+            android:name=".background.BootReceiver"
             android:enabled="true"
             android:exported="true">
 

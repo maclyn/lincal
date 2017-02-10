@@ -1,12 +1,15 @@
-package com.inipage.lincal;
+package com.inipage.lincal.db;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.inipage.lincal.model.Record;
+import com.inipage.lincal.model.Task;
+import com.inipage.lincal.model.TaskToday;
+
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,7 +27,7 @@ public class DatabaseEditor {
         db = new DatabaseHelper(context, DatabaseHelper.FILENAME, null, DatabaseHelper.VERSION).getWritableDatabase();
     }
 
-    public boolean addNewTask(String name, String icon, int color, String time, String daysOfWeek, int minutesForReminder, String customerId){
+    public boolean addNewTask(String name, String icon, int color, String time, String daysOfWeek, int minutesForReminder, int productivityLevel){
         if(name.isEmpty() || icon.isEmpty()) return false;
 
         ContentValues cv = new ContentValues();
@@ -34,12 +37,46 @@ public class DatabaseEditor {
         cv.put(DatabaseHelper.TASKS_REMINDER_TIME_COL_NAME, time);
         cv.put(DatabaseHelper.TASKS_REMINDER_DOW_COL_NAME, daysOfWeek.toLowerCase());
         cv.put(DatabaseHelper.TASKS_REMINDER_THRESHOLD_COL_NAME, minutesForReminder);
+        cv.put(DatabaseHelper.TASKS_PRODUCTIVITY_COL_NAME, productivityLevel);
+        cv.put(DatabaseHelper.TASKS_ARCHIVED_COL_NAME, 0);
         long result = db.insert(DatabaseHelper.TASKS_TABLE_NAME, null, cv);
         return result != -1L;
     }
 
-    public List<Task> getTasks(){
-        Cursor c = db.query(DatabaseHelper.TASKS_TABLE_NAME, null, null, null, null, null, DatabaseHelper.TASKS_NAME_COL_NAME + " desc");
+    public boolean updateTask(long taskId,
+                              String name, String icon, int color, String time, String daysOfWeek,
+                              int minutesForReminder, int productivityLevel, int isArchived){
+        ContentValues cv = new ContentValues();
+        if(name != null)
+            cv.put(DatabaseHelper.TASKS_NAME_COL_NAME, name);
+        if(icon != null)
+            cv.put(DatabaseHelper.TASKS_ICON_COL_NAME, icon);
+        if(color != -1)
+            cv.put(DatabaseHelper.TASKS_COLOR_COL_NAME, color);
+        if(time != null)
+            cv.put(DatabaseHelper.TASKS_REMINDER_TIME_COL_NAME, time);
+        if(daysOfWeek != null)
+            cv.put(DatabaseHelper.TASKS_REMINDER_DOW_COL_NAME, daysOfWeek.toLowerCase());
+        if(minutesForReminder != -1)
+            cv.put(DatabaseHelper.TASKS_REMINDER_THRESHOLD_COL_NAME, minutesForReminder);
+        if(productivityLevel != -1)
+            cv.put(DatabaseHelper.TASKS_PRODUCTIVITY_COL_NAME, productivityLevel);
+        if(isArchived != -1)
+            cv.put(DatabaseHelper.TASKS_ARCHIVED_COL_NAME, isArchived);
+
+        long result = db.update(DatabaseHelper.TASKS_TABLE_NAME, cv,
+                DatabaseHelper.TASKS_ID_COL_NAME + "=?", new String[] { String.valueOf(taskId)});
+        return result != 0L;
+    }
+
+    public List<Task> getTasks(boolean includeArchived){
+        Cursor c = null;
+        if(includeArchived)
+            c = db.query(DatabaseHelper.TASKS_TABLE_NAME, null, null, null, null, null, DatabaseHelper.TASKS_NAME_COL_NAME + " desc");
+        else
+            c = db.query(DatabaseHelper.TASKS_TABLE_NAME, null,
+                    DatabaseHelper.TASKS_ARCHIVED_COL_NAME + "=?", new String[] { "0" },
+                    null, null, DatabaseHelper.TASKS_NAME_COL_NAME + " desc");
         List<Task> tasks = new ArrayList<>();
         if(c.moveToFirst()){
             int idCol = c.getColumnIndex(DatabaseHelper.TASKS_ID_COL_NAME);
@@ -49,6 +86,8 @@ public class DatabaseEditor {
             int reminderTimeCol = c.getColumnIndex(DatabaseHelper.TASKS_REMINDER_TIME_COL_NAME);
             int reminderDowCol = c.getColumnIndex(DatabaseHelper.TASKS_REMINDER_DOW_COL_NAME);
             int reminderThresholdCol = c.getColumnIndex(DatabaseHelper.TASKS_REMINDER_THRESHOLD_COL_NAME);
+            int productivityCol = c.getColumnIndex(DatabaseHelper.TASKS_PRODUCTIVITY_COL_NAME);
+            int archivedCol = c.getColumnIndex(DatabaseHelper.TASKS_ARCHIVED_COL_NAME);
 
             while(!c.isAfterLast()){
                 tasks.add(new Task(
@@ -58,8 +97,10 @@ public class DatabaseEditor {
                         c.getInt(colorCol),
                         c.getString(reminderDowCol),
                         c.getString(reminderTimeCol),
-                        c.getInt(reminderThresholdCol)
-                ));
+                        c.getInt(reminderThresholdCol),
+                        c.getInt(productivityCol),
+                        c.getInt(archivedCol) == 1)
+                );
                 c.moveToNext();
             }
         }
@@ -68,8 +109,8 @@ public class DatabaseEditor {
     }
 
 
-    public List<TaskToday> getTasksWithTimeSpentToday(){
-        List<Task> tasks = getTasks();
+    public List<TaskToday> getTasksWithTimeSpentToday(boolean includeArchived){
+        List<Task> tasks = getTasks(includeArchived);
         List<TaskToday> todayTasks = new ArrayList<>();
         for(Task t : tasks){
             Cursor c = db.rawQuery("SELECT  * FROM records WHERE date(records.start_time) = date('now') AND records.task_id=?",
@@ -141,7 +182,7 @@ public class DatabaseEditor {
     }
 
     public Task getTask(long taskId) {
-        List<Task> tasks = getTasks();
+        List<Task> tasks = getTasks(true);
         for(Task t : tasks){ //Inefficient, but quick to write
             if(t.getId() == taskId) return t;
         }

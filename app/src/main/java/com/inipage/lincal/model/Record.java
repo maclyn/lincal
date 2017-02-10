@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.model;
 
 import java.util.Date;
 

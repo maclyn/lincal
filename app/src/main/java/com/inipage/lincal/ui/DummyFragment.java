@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -7,6 +7,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.inipage.lincal.R;
 
 public class DummyFragment extends Fragment {
     public DummyFragment(){

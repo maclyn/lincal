@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,7 +10,7 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String FILENAME = "database.db";
-    public static final int VERSION = 5;
+    public static final int VERSION = 7;
 
     public static final SimpleDateFormat DB_REMINDER_TIME_FORMAT = new SimpleDateFormat("h:mm aa", Locale.US);
     public static final SimpleDateFormat DB_RECORD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -28,6 +28,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TASKS_REMINDER_TIME_COL_NAME = "reminder_time";
     public static final String TASKS_REMINDER_THRESHOLD_COL_NAME = "reminder_threshold";
     public static final String TASKS_REMINDER_DOW_COL_NAME = "reminder_dow";
+    public static final String TASKS_ARCHIVED_COL_NAME = "archived";
+    public static final String TASKS_PRODUCTIVITY_COL_NAME = "productivity";
     private static final String CREATE_TABLE_TASKS = "CREATE TABLE \"" + TASKS_TABLE_NAME + "\" (\n" +
             "\t`" + TASKS_ID_COL_NAME + "`\tINTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,\n" +
             "\t`" + TASKS_NAME_COL_NAME + "`\tTEXT NOT NULL UNIQUE,\n" +
@@ -35,7 +37,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "\t`" + TASKS_REMINDER_DOW_COL_NAME + "`\tTEXT,\n" +
             "\t`" + TASKS_COLOR_COL_NAME + "`\tINTEGER NOT NULL,\n" +
             "\t`" + TASKS_REMINDER_TIME_COL_NAME + "`\tTEXT NOT NULL,\n" +
-            "\t`" + TASKS_REMINDER_THRESHOLD_COL_NAME + "`\tINTEGER\n" +
+            "\t`" + TASKS_REMINDER_THRESHOLD_COL_NAME + "`\tINTEGER,\n" +
+            "\t`" + TASKS_PRODUCTIVITY_COL_NAME + "`\tINTEGER NOT NULL DEFAULT 0,\n" +
+            "\t`" + TASKS_ARCHIVED_COL_NAME + "`\tINTEGER NOT NULL DEFAULT 0,\n" +
             ")";
 
     public static final String RECORDS_TABLE_NAME = "records";
@@ -66,11 +70,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         //What could go wrong?
-        sqLiteDatabase.execSQL("DROP TABLE " + RECORDS_TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE " + TASKS_TABLE_NAME);
-        sqLiteDatabase.execSQL(CREATE_TABLE_TASKS);
-        sqLiteDatabase.execSQL(CREATE_TABLE_RECORDS);
+        if(oldVersion < 5){ //Full database rebuild
+            sqLiteDatabase.execSQL("DROP TABLE " + RECORDS_TABLE_NAME);
+            sqLiteDatabase.execSQL("DROP TABLE " + TASKS_TABLE_NAME);
+            sqLiteDatabase.execSQL(CREATE_TABLE_TASKS);
+            sqLiteDatabase.execSQL(CREATE_TABLE_RECORDS);
+            return;
+        }
+
+        if(oldVersion == 5){ //5 --> 7
+            sqLiteDatabase.execSQL("ALTER TABLE `tasks` ADD COLUMN `productivity` INTEGER NOT NULL DEFAULT 0");
+            sqLiteDatabase.execSQL("ALTER TABLE `tasks` ADD COLUMN `archived` INTEGER NOT NULL DEFAULT 0");
+        }
+
+        if(oldVersion == 6){
+            sqLiteDatabase.execSQL("ALTER TABLE `tasks` ADD COLUMN `archived` INTEGER NOT NULL DEFAULT 0");
+        }
     }
 }

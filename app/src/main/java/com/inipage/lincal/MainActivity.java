@@ -1,22 +1,21 @@
 package com.inipage.lincal;
 
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
+import com.inipage.lincal.ui.DummyFragment;
+import com.inipage.lincal.ui.HistoryFragment;
+import com.inipage.lincal.ui.TaskMgmtFragment;
+import com.inipage.lincal.ui.TodayFragment;
 
 public class MainActivity extends AppCompatActivity implements
         BottomNavigationView.OnNavigationItemSelectedListener {
@@ -54,10 +53,13 @@ public class MainActivity extends AppCompatActivity implements
             case R.id.today:
                 fragmentForReplacing = TodayFragment.newInstance();
                 break;
+            case R.id.todo:
+                fragmentForReplacing = DummyFragment.newInstance();
+                break;
             case R.id.history:
                 fragmentForReplacing = HistoryFragment.newInstance();
                 break;
-            case R.id.settings:
+            case R.id.tasks:
                 fragmentForReplacing = TaskMgmtFragment.newInstance();
                 break;
         }

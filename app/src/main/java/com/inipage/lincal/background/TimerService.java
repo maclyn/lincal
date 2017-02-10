@@ -1,7 +1,6 @@
-package com.inipage.lincal;
+package com.inipage.lincal.background;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -10,7 +9,11 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.util.Pair;
 
-import java.sql.Time;
+import com.inipage.lincal.MainActivity;
+import com.inipage.lincal.R;
+import com.inipage.lincal.db.DatabaseEditor;
+import com.inipage.lincal.model.Task;
+
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;

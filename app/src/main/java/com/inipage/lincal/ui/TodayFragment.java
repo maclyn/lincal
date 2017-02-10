@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.ui;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,6 +14,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.inipage.lincal.R;
+import com.inipage.lincal.background.TimerService;
+import com.inipage.lincal.db.DatabaseEditor;
+import com.inipage.lincal.model.TaskToday;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,7 +59,7 @@ public class TodayFragment extends Fragment {
         super.onResume();
 
         taskView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        final List<TaskToday> tasks = DatabaseEditor.getInstance(getActivity()).getTasksWithTimeSpentToday();
+        final List<TaskToday> tasks = DatabaseEditor.getInstance(getActivity()).getTasksWithTimeSpentToday(false);
         Collections.sort(tasks, new Comparator<TaskToday>() {
             @Override
             public int compare(TaskToday taskToday, TaskToday t1) {

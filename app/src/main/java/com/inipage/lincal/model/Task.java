@@ -1,6 +1,6 @@
-package com.inipage.lincal;
+package com.inipage.lincal.model;
 
-import android.database.Cursor;
+import com.inipage.lincal.db.DatabaseHelper;
 
 import java.util.Date;
 import java.util.Locale;
@@ -13,11 +13,14 @@ public class Task {
     private String reminderDow;
     private String reminderTime;
     private int reminderThreshold;
+    private int productivityLevel;
+    private boolean archived;
 
     //Transient fields; populated as need on-the-fly
     private Date reminderDate;
+    private int[] calDows = null;
 
-    public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold) {
+    public Task(long id, String name, String icon, int color, String reminderDow, String reminderTime, int reminderThreshold, int productivityLevel, boolean archived) {
         this.id = id;
         this.name = name;
         this.icon = icon;
@@ -25,6 +28,8 @@ public class Task {
         this.reminderDow = reminderDow;
         this.reminderTime = reminderTime;
         this.reminderThreshold = reminderThreshold;
+        this.productivityLevel = productivityLevel;
+        this.archived = archived;
     }
 
     public long getId() {
@@ -47,7 +52,6 @@ public class Task {
         return reminderDow;
     }
 
-    private int[] calDows = null;
     public int[] getReminderDowAsCalDow(){
         if(calDows != null) return calDows;
 
@@ -61,6 +65,10 @@ public class Task {
         }
 
         return calDows;
+    }
+
+    public int getProductivityLevel() {
+        return productivityLevel;
     }
 
     public String getReminderTime() {
@@ -83,5 +91,9 @@ public class Task {
 
     public int getReminderThreshold() {
         return reminderThreshold;
+    }
+
+    public boolean isArchived() {
+        return archived;
     }
 }

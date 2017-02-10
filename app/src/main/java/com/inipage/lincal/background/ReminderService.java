@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.background;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -10,6 +10,12 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.Pair;
+
+import com.inipage.lincal.MainActivity;
+import com.inipage.lincal.db.DatabaseEditor;
+import com.inipage.lincal.db.DatabaseHelper;
+import com.inipage.lincal.model.Task;
+import com.inipage.lincal.model.TaskToday;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -40,7 +46,7 @@ public class ReminderService extends Service {
 
         if(intent.getAction().equals(ACTION_UPDATE_REMINDERS)) {
             //Unoptimized first go at finding closest next date
-            List<Task> allTasks = DatabaseEditor.getInstance(this).getTasks();
+            List<Task> allTasks = DatabaseEditor.getInstance(this).getTasks(false);
             List<Pair<Date, Long>> allReminders = new ArrayList<>(allTasks.size() * 4); //This be rough
             Calendar today = new GregorianCalendar();
             for (Task t : allTasks) {
@@ -118,7 +124,7 @@ public class ReminderService extends Service {
             }
 
             //Notify for reminder; icon is the icon of the thing
-            List<TaskToday> tasksWithTimeSpent = DatabaseEditor.getInstance(this).getTasksWithTimeSpentToday();
+            List<TaskToday> tasksWithTimeSpent = DatabaseEditor.getInstance(this).getTasksWithTimeSpentToday(false);
             //O(n^2) sadness, but not too bad (usually just O(n) -- tasksToNotifyFor is like 1 normally
             List<TaskToday> toNotifyFor = new ArrayList<>();
             for(TaskToday task : tasksWithTimeSpent){

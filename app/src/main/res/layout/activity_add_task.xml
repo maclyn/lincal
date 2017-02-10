@@ -37,6 +37,7 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/activity_vertical_margin"
             android:orientation="vertical">
+
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -70,11 +71,65 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp" />
 
+            <TextView
+                android:text="@string/productivity_rating"
+                android:gravity="left"
+                android:layout_marginTop="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <SeekBar
+                android:id="@+id/productivity_bar"
+                android:max="100"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:weightSum="3"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/set_not_productive"
+                    android:layout_weight="1"
+                    android:text="Not productive"
+                    android:gravity="left|center"
+                    android:maxLines="2"
+                    android:layout_gravity="center"
+                    style="@style/Base.Widget.AppCompat.Button.Borderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/set_neutral"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Neutral"
+                    android:maxLines="2"
+                    android:layout_gravity="center"
+                    style="@style/Base.Widget.AppCompat.Button.Borderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/set_productive"
+                    android:layout_weight="1"
+                    android:gravity="right|center"
+                    android:text="Productive"
+                    android:maxLines="2"
+                    android:layout_gravity="center"
+                    style="@style/Base.Widget.AppCompat.Button.Borderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
             <CheckBox
                 android:id="@+id/enable_reminder"
                 android:text="Enable reminder"
-                android:layout_gravity="center_horizontal"
+                android:layout_gravity="left"
                 android:layout_margin="8dp"
+                android:layout_marginTop="16dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             

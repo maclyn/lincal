@@ -1,9 +1,7 @@
-package com.inipage.lincal;
+package com.inipage.lincal.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
@@ -12,6 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.inipage.lincal.R;
+import com.inipage.lincal.db.DatabaseEditor;
+import com.inipage.lincal.model.Record;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

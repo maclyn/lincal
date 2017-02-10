@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +13,11 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.inipage.lincal.R;
+import com.inipage.lincal.background.TimerService;
+import com.inipage.lincal.model.Task;
+import com.inipage.lincal.model.TaskToday;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;

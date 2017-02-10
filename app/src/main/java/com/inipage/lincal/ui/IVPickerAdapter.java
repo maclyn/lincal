@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.ui;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import java.util.List;
+import com.inipage.lincal.R;
 
 public class IVPickerAdapter extends RecyclerView.Adapter<IVPickerAdapter.IVPickerHolder> {
     private static final int PICKER_TYPE_COLOR = 1;
@@ -81,5 +81,30 @@ public class IVPickerAdapter extends RecyclerView.Adapter<IVPickerAdapter.IVPick
     public String getSelectedResource(){
         if(mode == PICKER_TYPE_COLOR) throw new RuntimeException("Can't get resource on a color picker!");
         return mResourceNames[selectedItem];
+    }
+
+
+    public void setSelectedResource(String resourceName) {
+        for(int i = 0; i < mResourceNames.length; i++){
+            if(mResourceNames[i].equals(resourceName)){
+                int lastSelectedItem = selectedItem;
+                selectedItem = i;
+                IVPickerAdapter.this.notifyItemChanged(lastSelectedItem);
+                IVPickerAdapter.this.notifyItemChanged(selectedItem);
+                break;
+            }
+        }
+    }
+
+    public void setSelectedColor(int color) {
+        for(int i = 0; i < mColorList.length; i++){
+            if(mColorList[i] == color){
+                int lastSelectedItem = selectedItem;
+                selectedItem = i;
+                IVPickerAdapter.this.notifyItemChanged(lastSelectedItem);
+                IVPickerAdapter.this.notifyItemChanged(selectedItem);
+                break;
+            }
+        }
     }
 }

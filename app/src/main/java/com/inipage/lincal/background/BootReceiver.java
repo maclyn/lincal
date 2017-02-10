@@ -1,4 +1,4 @@
-package com.inipage.lincal;
+package com.inipage.lincal.background;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
