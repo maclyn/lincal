@@ -64,4 +64,17 @@ public class Todo {
     public void setCompleted(boolean completed) {
         this.complete = completed;
     }
+
+    public void setImportance(int importance) {
+        this.importance = importance;
+    }
+
+    public void setDate(Date date) {
+        this.dueDate = DatabaseHelper.DB_RECORD_DATE_FORMAT.format(date);
+        this.dueDateAsDate = date;
+    }
+
+    public void setTaskId(long taskId) {
+        this.taskId = taskId;
+    }
 }

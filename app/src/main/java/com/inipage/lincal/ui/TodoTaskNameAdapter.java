@@ -41,7 +41,7 @@ public class TodoTaskNameAdapter extends ArrayAdapter<Task> {
         View itemView = convertView; //TODO: Eventually use old-school ViewHolder pattern here
         if(itemView == null)
             itemView = LayoutInflater.from(getContext()).inflate(
-                    isDropDown ? R.layout.item_task_spinner : R.layout.item_task_spinner_fixed, parent, false);
+                    isDropDown ? R.layout.item_task_spinner : R.layout.item_task_spinner_fixed_neutral, parent, false);
 
         ((ImageView) itemView.findViewById(R.id.task_spinner_icon)).setImageResource(
                 getContext().getResources().getIdentifier(t.getIcon(), "drawable", getContext().getPackageName()));

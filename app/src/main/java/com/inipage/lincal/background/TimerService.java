@@ -151,6 +151,11 @@ public class TimerService extends Service {
     }
 
     private void timerUpdate(){
+        if(mTaskId == -1 || mTask == null){
+            stopSelf();
+            return;
+        }
+
         long now = System.currentTimeMillis();
         Pair<Integer, Integer> calc = calcMinsAndSecs(0);
         if(mState == STATE_P_BREAK && (mStartTime + BREAK_DURATION >= now)) calc = calcMinsAndSecs(BREAK_DURATION);

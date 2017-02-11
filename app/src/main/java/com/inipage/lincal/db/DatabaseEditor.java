@@ -174,6 +174,10 @@ public class DatabaseEditor {
     public List<Todo> getAllTodosSorted(@Nullable Task task, boolean includeCompleted){
         Cursor c = null;
         String completeField = includeCompleted ? "2" : "1";
+        String sortString =
+                DatabaseHelper.TODOS_COMPLETE_COL_NAME + " asc, " + //Put complete (i.e. 1) at bottom
+                "date(" + DatabaseHelper.TODOS_DUE_DATE_COL_NAME + ") asc, " + //Then sort by date due (due soonest at top)
+                DatabaseHelper.TODOS_IMPORTANCE_COL_NAME + " desc"; //100 -> 75 --> etc.
         if(task != null)
             c = db.query(DatabaseHelper.TODOS_TABLE_NAME,
                     null,
@@ -181,7 +185,7 @@ public class DatabaseEditor {
                     new String[] { String.valueOf(task.getId()), completeField },
                     null,
                     null,
-                    "date(" + DatabaseHelper.TODOS_DUE_DATE_COL_NAME + ") desc, " + DatabaseHelper.TODOS_IMPORTANCE_COL_NAME + " desc");
+                    sortString);
         else
             c = db.query(DatabaseHelper.TODOS_TABLE_NAME,
                     null,
@@ -189,7 +193,7 @@ public class DatabaseEditor {
                     new String[] { completeField },
                     null,
                     null,
-                    "date(" + DatabaseHelper.TODOS_DUE_DATE_COL_NAME + ") desc, " + DatabaseHelper.TODOS_IMPORTANCE_COL_NAME + " desc");
+                    sortString);
 
         List<Todo> todos = new ArrayList<>(c.getCount());
 

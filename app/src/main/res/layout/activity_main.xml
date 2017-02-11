@@ -20,11 +20,15 @@
             android:layout_above="@+id/bottom_tabs"/>
 
         <android.support.design.widget.BottomNavigationView
+            android:background="@color/colorPrimaryDark"
             android:id="@+id/bottom_tabs"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_alignParentBottom="true"
-            design:elevation="8dp"
+            design:elevation="0dp"
+            design:itemBackground="@color/colorPrimaryDark"
+            design:itemIconTint="@color/white"
+            design:itemTextColor="@color/white"
             design:menu="@menu/nav_menu" />
     </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>

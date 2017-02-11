@@ -33,17 +33,6 @@ public class MainActivity extends AppCompatActivity implements
         mNavView = (BottomNavigationView) findViewById(R.id.bottom_tabs);
         mContainer = (FrameLayout) findViewById(R.id.fragment_container);
 
-        //TODO: At some point, figure out how this is *actually* supposed to work w/o taking this out of the SL
-        View divider = new View(this);
-        divider.setBackgroundColor(
-                ContextCompat.getColor(this, android.support.design.R.color.design_bottom_navigation_shadow_color));
-        FrameLayout.LayoutParams dividerParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                getResources().getDimensionPixelSize(
-                        android.support.design.R.dimen.design_bottom_navigation_shadow_height));
-        divider.setLayoutParams(dividerParams);
-        mNavView.addView(divider);
-
         mNavView.setOnNavigationItemSelectedListener(this);
         replaceFragment(R.id.today);
     }

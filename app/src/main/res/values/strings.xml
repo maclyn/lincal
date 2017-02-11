@@ -35,4 +35,13 @@
     <string name="due_date">Due Date</string>
     <string name="importance">Importance</string>
     <string name="parent_task">Parent Task</string>
+    <string name="choose_assoc_task">Choose Associated Task</string>
+    <string name="set">Set</string>
+    <string name="cancel">Cancel</string>
+    <string name="mark_done">Mark done</string>
+    <string name="mark_n_as_done">Mark %d todos as done?</string>
+    <string name="marked_as_complete">All visible tasks marked as complete.</string>
+    <string name="add_task_first">Add a task (category) before creating todos.</string>
+    <string name="start_timer">Start timer</string>
+    <string name="start_pomodoro">Start pomodoro</string>
 </resources>

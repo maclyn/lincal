@@ -1,11 +1,13 @@
 package com.inipage.lincal.ui;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -31,7 +33,7 @@ import com.inipage.lincal.model.Todo;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TodoFragment extends Fragment {
+public class TodoFragment extends TimerAwareFragment {
     FloatingActionButton addTodo;
     RecyclerView todoView;
     Toolbar toolbar;
@@ -70,6 +72,10 @@ public class TodoFragment extends Fragment {
         addTodo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(allTasks.size() == 1){
+                    Toast.makeText(getContext(), R.string.add_task_first, Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 startActivity(new Intent(getActivity(), AddTodoActivity.class));
             }
         });
@@ -96,7 +102,7 @@ public class TodoFragment extends Fragment {
                         setAdapter();
                         break;
                     case R.id.mark_all_done:
-                        Toast.makeText(getContext(), "todo", Toast.LENGTH_SHORT).show();
+                        markAllAsDone();
                         break;
                 }
                 return true;
@@ -131,10 +137,44 @@ public class TodoFragment extends Fragment {
         }
     }
 
+    @Override
+    void onTimerStarted(long taskId, long todoId) {
+        adapter.notifyTimerStart(taskId, todoId);
+    }
+
+    @Override
+    void onTimerStopped(long taskId, long todoId) {
+        adapter.notifyTimerStop(taskId, todoId);
+    }
+
+    private void markAllAsDone() {
+        new AlertDialog.Builder(getContext())
+                .setTitle(R.string.mark_all_done)
+                .setMessage(getString(R.string.mark_n_as_done, allTodos.size()))
+                .setPositiveButton(R.string.mark_done, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        for(int i = 0; i < allTodos.size(); i++){
+                            Todo todo = allTodos.get(i);
+                            if(todo.isComplete()) continue;
+
+                            DatabaseEditor.getInstance(getContext())
+                                    .updateTodo(todo.getId(), null, -1, null, -1, 1);
+                            todo.setCompleted(true);
+                            adapter.notifyItemChanged(i);
+                        }
+
+                        Toast.makeText(getContext(), R.string.marked_as_complete, Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
     private void setAdapter(){
         selectedTask = (Task) taskSpinner.getSelectedItem();
-        adapter = new TodoAdapter(DatabaseEditor.getInstance(getActivity()).getAllTodosSorted(
-                selectedTask == null || selectedTask.getId() == -1 ? null : selectedTask, showCompleted));
+        allTodos = DatabaseEditor.getInstance(getActivity()).getAllTodosSorted(selectedTask == null || selectedTask.getId() == -1 ? null : selectedTask, showCompleted);
+        adapter = new TodoAdapter(allTodos, DatabaseEditor.getInstance(getActivity()).getTasks(true));
         todoView.setLayoutManager(new LinearLayoutManager(getActivity()));
         todoView.setAdapter(adapter);
     }

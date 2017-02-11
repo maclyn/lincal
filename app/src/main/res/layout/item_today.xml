@@ -1,122 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_marginBottom="2dp"
-    android:layout_marginTop="2dp"
-    android:layout_marginLeft="8dp"
-    android:layout_marginRight="8dp">
-
     <android.support.v7.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/card_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardElevation="4dp"
         app:cardUseCompatPadding="true"
-        app:cardMaxElevation="4dp">
+        app:cardMaxElevation="4dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="120dp">
+            android:layout_height="wrap_content">
 
-            <FrameLayout
-                android:layout_alignParentLeft="true"
-                android:id="@+id/task_card_background"
-                android:background="@color/colorPrimary"
-                android:layout_width="60dp"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:src="@drawable/white_circle"
-                    android:layout_gravity="center"
-                    android:background="@drawable/white_circle"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp" />
-
-                <ImageView
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_today_black_24dp"
-                    android:id="@+id/task_card_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_toRightOf="@+id/task_card_background"
+            <RelativeLayout
+                android:id="@+id/header"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/today_type_icon"
+                    android:padding="2dp"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginLeft="4dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_centerVertical="true"
+                    app:srcCompat="@drawable/ic_assignment_black_24dp"/>
+
+                <ImageView
+                    android:id="@+id/today_icon"
+                    android:padding="2dp"
+                    android:layout_toRightOf="@+id/today_type_icon"
+                    android:layout_alignParentTop="true"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    app:srcCompat="@drawable/ic_lightbulb_outline_black_24dp"/>
+
+                <View
+                    android:id="@+id/header_divider"
+                    android:layout_toRightOf="@+id/today_icon"
+                    android:background="@color/black"
+                    android:layout_width="2dp"
+                    android:layout_height="24dp" />
+
+                <TextView
+                    android:layout_toRightOf="@+id/header_divider"
+                    android:gravity="left|center_vertical"
+                    android:text="@string/short_sample"
+                    android:textColor="@color/black"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="24dp" />
+            </RelativeLayout>
+
+            <View
+                android:id="@+id/header_bottom_divider"
+                android:layout_below="@+id/header"
+                android:background="@color/black"
+                android:layout_height="2dp"
+                android:layout_width="match_parent" />
+
+            <FrameLayout
+                android:id="@+id/main_content_view"
+                android:layout_below="@+id/header_bottom_divider"
+                android:orientation="vertical"
+                android:layout_margin="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <LinearLayout
                     android:orientation="vertical"
                     android:layout_gravity="center"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="8dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
-                        android:id="@+id/task_name"
-                        android:text="Photography"
-                        android:singleLine="true"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textColor="@android:color/primary_text_light"
-                        style="@style/TextAppearance.AppCompat.Medium"/>
-
-                    <TextView
-                        android:id="@+id/task_amount_today"
-                        android:text="0m 30s today"
-                        android:singleLine="true"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        style="@style/TextAppearance.AppCompat.Medium"/>
-
                     <ProgressBar
-                        android:id="@+id/task_progress"
-                        android:indeterminate="false"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                        android:progress="50"
-                        android:max="100"
+                        android:id="@+id/main_content_progress_bar"
+                        android:layout_marginBottom="4dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:clickable="false"
-                        android:thumb="@null"
-                        android:layout_marginTop="4dp"
-                        android:paddingStart="0dp"
-                        android:paddingEnd="16dp" />
+                        android:progress="50"
+                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                        android:max="100"/>
 
-                    <LinearLayout
-                        android:orientation="horizontal"
+                    <TextView
+                        android:id="@+id/main_content_text_view"
+                        android:text="30m30s/45m"
+                        android:layout_gravity="center_horizontal"
+                        android:maxLines="1"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-                        <Button
-                            android:id="@+id/start_button"
-                            style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                            android:text="Start"
-                            android:layout_gravity="center_vertical"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                        <Button
-                            android:id="@+id/pomodoro_button"
-                            style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                            android:text="Pomodoro"
-                            android:layout_gravity="center_vertical"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                        <Button
-                            android:id="@+id/stop_button"
-                            style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                            android:text="Stop"
-                            android:layout_gravity="center_vertical"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </FrameLayout>
+
+            <View
+                android:id="@+id/main_content_bottom_divider"
+                android:layout_below="@+id/main_content_view"
+                android:background="@color/black"
+                android:layout_height="2dp"
+                android:layout_width="match_parent" />
+
+            <LinearLayout
+                android:layout_below="@+id/main_content_bottom_divider"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:id="@+id/today_checkbox"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp">
+
+                    <ImageView
+                        android:layout_gravity="center"
+                        app:srcCompat="@drawable/ic_check_box_outline_blank_black_48dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/today_timer"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp">
+
+                    <ImageView
+                        android:layout_gravity="center"
+                        app:srcCompat="@drawable/ic_timer_black_24dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/today_pomodoro"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp">
+
+                    <ImageView
+                        android:layout_gravity="center"
+                        app:srcCompat="@drawable/ic_tomato_black_24dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/today_stop"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp">
+
+                    <ImageView
+                        android:layout_gravity="center"
+                        app:srcCompat="@drawable/ic_stop_black_24dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp" />
+                </FrameLayout>
+            </LinearLayout>
         </RelativeLayout>
     </android.support.v7.widget.CardView>
-</FrameLayout>

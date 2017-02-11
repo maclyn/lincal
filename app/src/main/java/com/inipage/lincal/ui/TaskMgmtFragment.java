@@ -29,7 +29,7 @@ import com.inipage.lincal.model.TaskToday;
 
 import java.util.List;
 
-public class TaskMgmtFragment extends Fragment {
+public class TaskMgmtFragment extends TimerAwareFragment {
     FloatingActionButton addTask;
     RecyclerView taskView;
     Toolbar toolbar;
@@ -95,28 +95,22 @@ public class TaskMgmtFragment extends Fragment {
                 return true;
             }
         });
-        timerReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                int taskLocation = 0;
-                for(Task t : tasks){
-                    if(t.getId() == intent.getLongExtra(TimerService.EXTRA_TASK_ID, -1))
-                        break;
-                    taskLocation++;
-                }
-                adapter.notifyItemChanged(taskLocation);
-            }
-        };
-        IntentFilter filter = new IntentFilter(TimerService.BROADCAST_TIMER_STARTED);
-        filter.addAction(TimerService.BROADCAST_TIMER_STOPPED);
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(timerReceiver, filter);
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    void onTimerStarted(long taskId, long todoId) {
+        int taskLocation = 0;
+        for(Task t : tasks){
+            if(t.getId() == taskId)
+                break;
+            taskLocation++;
+        }
+        adapter.notifyItemChanged(taskLocation);
+    }
 
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(timerReceiver);
+    @Override
+    void onTimerStopped(long taskId, long todoId) {
+        onTimerStarted(taskId, todoId); //Same implementation, actually
     }
 
     private void setAdapter(){
