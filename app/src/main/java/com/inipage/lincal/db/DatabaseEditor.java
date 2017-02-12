@@ -14,7 +14,9 @@ import com.inipage.lincal.model.Todo;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DatabaseEditor {
     private static DatabaseEditor instance;
@@ -129,6 +131,14 @@ public class DatabaseEditor {
         return tasks;
     }
 
+    public Map<Long, Task> getTaskMap(){
+        List<Task> tasks = getTasks(true);
+        Map<Long, Task> taskMap = new HashMap<>();
+        for(Task t : tasks){
+            taskMap.put(t.getId(), t);
+        }
+        return taskMap;
+    }
 
     public List<TaskToday> getTasksWithRemindersAndTimeSpentToday(boolean includeArchived){
         List<Task> tasks = getTasks(includeArchived);
@@ -136,7 +146,7 @@ public class DatabaseEditor {
         for(Task t : tasks){ //TODO: This would likely be faster using AGGREGATE operations, JOINS
             if(t.getReminderThreshold() == 0) continue;
 
-            Cursor c = db.rawQuery("SELECT  * FROM records WHERE date(records.start_time) = date('now') AND records.task_id=?",
+            Cursor c = db.rawQuery("SELECT  * FROM records WHERE date(start_time)=date('now', 'localtime') AND task_id=?",
                     new String[]{ String.valueOf(t.getId())});
             int secondsForTask = 0;
             if(c.moveToFirst()){

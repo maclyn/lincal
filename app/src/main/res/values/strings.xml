@@ -44,4 +44,5 @@
     <string name="add_task_first">Add a task (category) before creating todos.</string>
     <string name="start_timer">Start timer</string>
     <string name="start_pomodoro">Start pomodoro</string>
+    <string name="due_when">Due %s</string>
 </resources>

@@ -16,8 +16,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final SimpleDateFormat DB_RECORD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
     public static final String[] DB_DOW_ENTRIES = new String[] { "su", "mo", "tu", "we", "th", "fr",
             "sa" };
-    public static final int[] DB_DOW_CAL_FIELDS = new int[] { Calendar.SUNDAY, Calendar.MONDAY,
-            Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY,
+    public static final int[] DB_DOW_CAL_FIELDS = new int[] {
+            Calendar.SUNDAY,
+            Calendar.MONDAY,
+            Calendar.TUESDAY,
+            Calendar.WEDNESDAY,
+            Calendar.THURSDAY,
+            Calendar.FRIDAY,
             Calendar.SATURDAY};
 
     public static final String TASKS_TABLE_NAME = "tasks";

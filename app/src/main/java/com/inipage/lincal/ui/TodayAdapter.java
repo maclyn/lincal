@@ -8,145 +8,348 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.inipage.lincal.R;
+import com.inipage.lincal.Utilities;
 import com.inipage.lincal.background.TimerService;
+import com.inipage.lincal.db.DatabaseEditor;
 import com.inipage.lincal.model.Task;
 import com.inipage.lincal.model.TaskToday;
+import com.inipage.lincal.model.Todo;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 
-public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.TaskVH> {
-    public class TaskVH extends RecyclerView.ViewHolder {
+public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
+    public class ItemVH extends RecyclerView.ViewHolder {
         CardView cardView;
-        FrameLayout tabBackground;
-        ImageView icon;
-        TextView title;
-        ProgressBar amountComplete;
-        Button start;
-        Button pomodoro;
-        Button stop;
-        TextView timeToday;
+        View mainBackground;
+        View sideBorder;
+        View bottomBorder;
+        View contentBorder;
+        ImageView taskIcon;
+        ImageView typeIcon;
+        TextView headerText;
+        ProgressBar progressBar;
+        TextView contentText;
+        View timerStart;
+        View timerStop;
+        View pomodoro;
+        View checkbox;
+        ImageView checkboxImage;
 
-        public TaskVH(View itemView) {
+        public ItemVH(View itemView) {
             super(itemView);
+            mainBackground = itemView.findViewById(R.id.main_content_view);
             cardView = (CardView) itemView.findViewById(R.id.card_view);
-            timeToday = (TextView) itemView.findViewById(R.id.task_amount_today);
-            tabBackground = (FrameLayout) itemView.findViewById(R.id.task_card_background);
-            icon = (ImageView) itemView.findViewById(R.id.task_card_icon);
-            title = (TextView) itemView.findViewById(R.id.task_name);
-            amountComplete = (ProgressBar) itemView.findViewById(R.id.task_progress);
-            start = (Button) itemView.findViewById(R.id.start_button);
-            pomodoro = (Button) itemView.findViewById(R.id.pomodoro_button);
-            stop = (Button) itemView.findViewById(R.id.stop_button);
+            sideBorder = itemView.findViewById(R.id.header_divider);
+            bottomBorder = itemView.findViewById(R.id.header_bottom_divider);
+            contentBorder = itemView.findViewById(R.id.main_content_bottom_divider);
+            taskIcon = (ImageView) itemView.findViewById(R.id.today_icon);
+            typeIcon = (ImageView) itemView.findViewById(R.id.today_type_icon);
+            headerText = (TextView) itemView.findViewById(R.id.header_text);
+            progressBar = (ProgressBar) itemView.findViewById(R.id.main_content_progress_bar);
+            contentText = (TextView) itemView.findViewById(R.id.main_content_text_view);
+            timerStart = itemView.findViewById(R.id.today_timer);
+            timerStop = itemView.findViewById(R.id.today_stop);
+            pomodoro = itemView.findViewById(R.id.today_pomodoro);
+            checkbox = itemView.findViewById(R.id.today_checkbox);
+            checkboxImage = (ImageView) itemView.findViewById(R.id.today_checkbox_iv);
         }
     }
 
-    List<TaskToday> mTasks;
+    public static class TodayAdapterItem {
+        private static final int TYPE_TODO = 1;
+        private static final int TYPE_REMINDER = 2;
 
-    public TodayAdapter(List<TaskToday> tasks){
-        mTasks = tasks;
-    }
+        private Object data;
+        private int type;
 
-    @Override
-    public TaskVH onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new TaskVH(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_today, parent, false));
-    }
-
-    @Override
-    public void onBindViewHolder(final TaskVH holder, int position) {
-        holder.tabBackground.setBackgroundColor(mTasks.get(position).getColor());
-        Context ctx = holder.itemView.getContext();
-        holder.icon.setImageResource(ctx.getResources().getIdentifier(mTasks.get(position).getIcon(), "drawable", ctx.getPackageName()));
-        holder.title.setText(mTasks.get(position).getName());
-        int secondsSoFar = mTasks.get(position).getSecondsSoFar();
-        holder.cardView.setCardBackgroundColor(ctx.getResources().getColor(R.color.white));
-
-        Task task = mTasks.get(position);
-        holder.amountComplete.setVisibility(View.GONE);
-
-        reminderBarSetter: {
-            if (task.getReminderThreshold() != 0) {
-                //Not _necessarily_ important this day of week
-                int todayDow = new GregorianCalendar().get(Calendar.DAY_OF_WEEK);
-                boolean validDay = false;
-                for (int dow : task.getReminderDowAsCalDow()) {
-                    if (dow == todayDow) {
-                        validDay = true;
-                        break;
-                    }
-                }
-                if(!validDay) break reminderBarSetter;
-
-                holder.amountComplete.setVisibility(View.VISIBLE);
-                holder.amountComplete.setMax(mTasks.get(position).getReminderThreshold() * 60);
-                holder.amountComplete.setProgress(secondsSoFar);
-
-                if (secondsSoFar >= mTasks.get(position).getReminderThreshold() * 60) {
-                    holder.cardView.setCardBackgroundColor(Color.parseColor("#C8E6C9"));
-                } else {
-                    holder.cardView.setCardBackgroundColor(Color.parseColor("#ffcdd2"));
-                }
+        public TodayAdapterItem(Object data){
+            if(data instanceof Todo){
+                type = TYPE_TODO;
+                this.data = data;
+            } else if (data instanceof Task){
+                type = TYPE_REMINDER;
+                this.data = data;
+            } else {
+                throw new RuntimeException("Invalid entry!");
             }
         }
 
-        int minutes = (int) Math.floor(secondsSoFar / 60);
-        int seconds = (secondsSoFar - (minutes * 60));
-        holder.timeToday.setText(minutes + "m" + (seconds > 10 ? seconds : "0" + seconds) + "s today");
+        public boolean isTodo(){
+            return type == TYPE_TODO;
+        }
 
-        boolean runningTimer = mTasks.get(position).getId() == TimerService.mTaskId;
-        holder.stop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
-        holder.start.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
-        holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
+        public boolean isReminder(){
+            return type == TYPE_REMINDER;
+        }
 
-        holder.start.setOnClickListener(new View.OnClickListener() {
+        public Todo getTodo(){
+            return (Todo) data;
+        }
+
+        public TaskToday getTask(){
+            return (TaskToday) data;
+        }
+
+        public static List<TodayAdapterItem> getStandardItems(Context ctx) {
+            DatabaseEditor editor = DatabaseEditor.getInstance(ctx);
+
+            //TODO: Speed up with SQL selections, limits
+            List<TaskToday> tasks = editor.getTasksWithRemindersAndTimeSpentToday(false);
+            List<Todo> todos = editor.getAllTodosSorted(null, false);
+
+            List<TodayAdapterItem> items = new ArrayList<>();
+
+            //Add the five soonest todos
+            Calendar tmp = new GregorianCalendar();
+            tmp.set(Calendar.HOUR_OF_DAY, 23);
+            tmp.set(Calendar.MINUTE, 59);
+            tmp.set(Calendar.SECOND, 59);
+            tmp.roll(Calendar.DAY_OF_YEAR, 3);
+            Date threeDaysFromNow = tmp.getTime();
+            for (Todo t : todos) {
+                if (!t.getDueDateAsDate().before(threeDaysFromNow)) break;
+                items.add(new TodayAdapterItem(t));
+                if (items.size() > 4) break;
+            }
+
+            //Add all reminders that occur on today
+            int today = new GregorianCalendar().get(Calendar.DAY_OF_WEEK); //0-6 moved to 1-7 to match Calendar format
+            for (TaskToday t : tasks) {
+                for (int dow : t.getReminderDowAsCalDow()) {
+                    if (dow == today) {
+                        items.add(new TodayAdapterItem(t));
+                        break;
+                    }
+                }
+            }
+
+            //Sort sensibly
+            //i.e. todos for today, incomplete reminders for today, other todos, complete reminders
+            Collections.sort(items, new Comparator<TodayAdapterItem>() {
+                @Override
+                public int compare(TodayAdapterItem lhs, TodayAdapterItem rhs) {
+                    //Where we want to show left higher on the list = -1
+                    //Where we want to show right higher on the list = -1
+                    //Where we don't care = 0
+
+                    //Check equality
+                    if (lhs.isTodo() && rhs.isTodo() && lhs.getTodo().getDueDateAsDate().getDate()
+                            == rhs.getTodo().getDueDateAsDate().getDate())
+                        return 0;
+                    if (lhs.isReminder() && rhs.isReminder() &&
+                            ((!lhs.getTask().hasCompletedRequiredTime() && !rhs.getTask().hasCompletedRequiredTime()) ||
+                                    (rhs.getTask().hasCompletedRequiredTime() && lhs.getTask().hasCompletedRequiredTime())))
+                        return 0;
+
+                    //compare todos
+                    if (lhs.isTodo() && rhs.isTodo()) { //todos list doesn't contain complete ones; we need to compare today vs other days
+                        //Equal case has been checked so one is newer
+                        if (lhs.getTodo().getDueDateAsDate().before(rhs.getTodo().getDueDateAsDate())) //lhs before rhs; more important
+                            return -1;
+                        return 1;
+                    } else if (rhs.isReminder() && lhs.isReminder()) { //tasks go: incomplete vs. complete
+                        if (!lhs.getTask().hasCompletedRequiredTime() && rhs.getTask().hasCompletedRequiredTime())
+                            return -1;
+                        return 1;
+                    } else { //one is todo, one is task -- tricky
+                        int todayDate = new Date().getDate();
+                        if (lhs.isTodo() && rhs.isReminder()) {
+                            if (lhs.getTodo().getDueDateAsDate().getDate() == todayDate) { //Always ahead of reminder
+                                return -1;
+                            } else if (!rhs.getTask().hasCompletedRequiredTime()) {
+                                return 1;
+                            } else {
+                                return -1; //other todos before complete stuff
+                            }
+                        }
+
+                        if(lhs.isReminder() && rhs.isTodo()){ //Not necessary, but may as well
+                            if(rhs.getTodo().getDueDateAsDate().getDate() == todayDate){
+                                return 1;
+                            } else if (!lhs.getTask().hasCompletedRequiredTime()) {
+                                return -1;
+                            } else {
+                                return 1; //other todos before copmlete stuff
+                            }
+                        }
+                    }
+
+                    return 0;
+                }
+            });
+
+            return items;
+        }
+    }
+
+    List<TodayAdapterItem> mItems;
+    Map<Long, Task> mTaskMap;
+    Context mContext;
+
+    public TodayAdapter(List<TodayAdapterItem> tasks, Context ctx){
+        mItems = tasks;
+        mContext = ctx;
+        mTaskMap = DatabaseEditor.getInstance(ctx).getTaskMap();
+    }
+
+    @Override
+    public ItemVH onCreateViewHolder(ViewGroup parent, int viewType) {
+        return new ItemVH(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_today, parent, false));
+    }
+
+    private final SimpleDateFormat SHORT_DATE = new SimpleDateFormat("M/d", Locale.US);
+
+    @Override
+    public void onBindViewHolder(final ItemVH holder, int position) {
+        TodayAdapterItem item = mItems.get(position);
+        Task rootTask = item.isReminder() ? item.getTask() : mTaskMap.get(item.getTodo().getId());
+
+        //(1) Setup borders based on task color
+        int color = rootTask.getColor();
+        holder.bottomBorder.setBackgroundColor(color);
+        holder.sideBorder.setBackgroundColor(color);
+        holder.contentBorder.setBackgroundColor(color);
+
+        //(2) Set task icon
+        holder.taskIcon.setImageResource(mContext.getResources().getIdentifier(rootTask.getIcon(), "drawable", mContext.getPackageName()));
+
+        //(3) Set type icon
+        holder.typeIcon.setImageResource(item.isReminder() ? R.drawable.ic_assignment_black_24dp : R.drawable.ic_list_black_24dp);
+
+        //(4) Set title (either to-do name or task title)
+        holder.headerText.setText(item.isReminder() ? rootTask.getName() : item.getTodo().getTitle());
+
+        //(5) Set progress bar, colors, and text
+        if(item.isTodo()){
+            holder.progressBar.setVisibility(View.GONE);
+
+            Calendar today = new GregorianCalendar();
+            today.set(Calendar.HOUR_OF_DAY, 23);
+            today.set(Calendar.MINUTE, 59);
+            today.set(Calendar.SECOND, 59);
+            if(item.getTodo().getDueDateAsDate().before(today.getTime())){
+                holder.mainBackground.setBackgroundColor(Color.parseColor("#ffebee"));
+            } else {
+                holder.mainBackground.setBackgroundColor(Color.parseColor("#E8F5E9"));
+            }
+
+            holder.contentText.setText(mContext.getString(R.string.due_when, SHORT_DATE.format(item.getTodo().getDueDateAsDate())));
+        } else {
+            holder.progressBar.setVisibility(View.VISIBLE);
+
+            holder.progressBar.setProgress(item.getTask().getSecondsSoFar());
+            holder.progressBar.setMax(item.getTask().getReminderThreshold() * 60);
+
+            if(item.getTask().hasCompletedRequiredTime()) {
+                holder.mainBackground.setBackgroundColor(Color.parseColor("#E8F5E9"));
+
+                holder.contentText.setText("Goal met! (" + Utilities.formatDuration(0, 0, item.getTask().getSecondsSoFar(), 0) + ")");
+            } else {
+                holder.mainBackground.setBackgroundColor(Color.parseColor("#ffebee"));
+                holder.contentText.setText(Utilities.formatDuration(0, 0, item.getTask().getSecondsSoFar(), 0) + "/" +
+                        Utilities.formatDuration(0, item.getTask().getReminderThreshold(), 0, 0));
+            }
+        }
+
+        //(6) Show/hide timing buttons if needed
+        //Set button visibility
+        if(item.isTodo()){
+            boolean runningTimer = item.getTodo().getTaskId() == TimerService.mTaskId &&
+                    item.getTodo().getId() == TimerService.mTodoId;
+            holder.timerStop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
+            holder.timerStart.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
+            holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
+        } else {
+            boolean runningTimer = item.getTask().getId() == TimerService.mTaskId && TimerService.mTodoId == -1;
+            holder.timerStop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
+            holder.timerStart.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
+            holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
+        }
+
+        holder.timerStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TaskToday task = mTasks.get(holder.getAdapterPosition());
+                TodayAdapterItem task = mItems.get(holder.getAdapterPosition());
                 Context ctx = holder.itemView.getContext();
 
                 Intent serviceIntent = new Intent(ctx, TimerService.class);
                 serviceIntent.setAction(TimerService.ACTION_START_TIMER);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
+                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.isReminder() ?
+                        task.getTask().getId() :
+                        task.getTodo().getTaskId());
+                if(task.isTodo())
+                    serviceIntent.putExtra(TimerService.EXTRA_TODO_ID, task.getTodo().getId());
                 ctx.startService(serviceIntent);
             }
         });
         holder.pomodoro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TaskToday task = mTasks.get(holder.getAdapterPosition());
+                TodayAdapterItem task = mItems.get(holder.getAdapterPosition());
                 Context ctx = holder.itemView.getContext();
 
                 Intent serviceIntent = new Intent(ctx, TimerService.class);
                 serviceIntent.setAction(TimerService.ACTION_START_POMODORO);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
+                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.isReminder() ?
+                        task.getTask().getId() :
+                        task.getTodo().getTaskId());
+                if(task.isTodo())
+                    serviceIntent.putExtra(TimerService.EXTRA_TODO_ID, task.getTodo().getId());
                 ctx.startService(serviceIntent);
             }
         });
-        holder.stop.setOnClickListener(new View.OnClickListener() {
+        holder.timerStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TaskToday task = mTasks.get(holder.getAdapterPosition());
+                TodayAdapterItem task = mItems.get(holder.getAdapterPosition());
                 Context ctx = holder.itemView.getContext();
 
                 Intent serviceIntent = new Intent(ctx, TimerService.class);
                 serviceIntent.setAction(TimerService.ACTION_STOP_TIMER);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
+                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.isReminder() ?
+                        task.getTask().getId() :
+                        task.getTodo().getTaskId());
+                if(task.isTodo())
+                    serviceIntent.putExtra(TimerService.EXTRA_TODO_ID, task.getTodo().getId());
                 ctx.startService(serviceIntent);
             }
         });
+
+        //(7) Enable checkbox functionality
+        if(item.isTodo()){
+            holder.checkboxImage.setImageResource(item.getTodo().isComplete() ? R.drawable.ic_check_box_black_48dp : R.drawable.ic_check_box_outline_blank_black_48dp);
+            holder.checkbox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Todo todo = mItems.get(holder.getAdapterPosition()).getTodo();
+                    boolean newState = !todo.isComplete();
+                    DatabaseEditor.getInstance(mContext).updateTodo(todo.getId(), null, -1, null, -1, newState ? 1 : 0);
+                    todo.setCompleted(newState);
+                    notifyItemChanged(holder.getAdapterPosition());
+                }
+            });
+        } else {
+            holder.checkbox.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return mTasks.size();
+        return mItems.size();
     }
 }

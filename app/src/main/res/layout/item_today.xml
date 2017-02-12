@@ -35,6 +35,7 @@
                 <ImageView
                     android:id="@+id/today_icon"
                     android:padding="2dp"
+                    android:layout_marginRight="4dp"
                     android:layout_toRightOf="@+id/today_type_icon"
                     android:layout_alignParentTop="true"
                     android:layout_width="24dp"
@@ -49,6 +50,7 @@
                     android:layout_height="24dp" />
 
                 <TextView
+                    android:id="@+id/header_text"
                     android:layout_toRightOf="@+id/header_divider"
                     android:gravity="left|center_vertical"
                     android:text="@string/short_sample"
@@ -70,7 +72,7 @@
                 android:id="@+id/main_content_view"
                 android:layout_below="@+id/header_bottom_divider"
                 android:orientation="vertical"
-                android:layout_margin="8dp"
+                android:padding="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -120,6 +122,7 @@
                     android:layout_height="32dp">
 
                     <ImageView
+                        android:id="@+id/today_checkbox_iv"
                         android:layout_gravity="center"
                         app:srcCompat="@drawable/ic_check_box_outline_blank_black_48dp"
                         android:layout_width="20dp"

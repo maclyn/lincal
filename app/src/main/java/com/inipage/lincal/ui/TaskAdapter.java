@@ -141,7 +141,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
             return;
         }
 
-        boolean runningTimer = mTasks.get(position).getId() == TimerService.mTaskId;
+        boolean runningTimer = mTasks.get(position).getId() == TimerService.mTaskId && TimerService.mTodoId != -1;
         holder.timerStop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
         holder.timerStart.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
         holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);

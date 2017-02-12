@@ -1,14 +1,23 @@
 package com.inipage.lincal;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.PopupMenu;
 import android.view.Menu;
 import android.view.View;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Random;
 
 /**
  * Created by Maclyn on 2/9/2017.
@@ -63,5 +72,49 @@ public class Utilities {
                     }
                 })
                 .show();
+    }
+
+
+
+    private static final SimpleDateFormat HOURS_MINUTES_SECONDS = new SimpleDateFormat("H:mm:ss", Locale.US);
+    private static final SimpleDateFormat MINUTES_SECONDS = new SimpleDateFormat("m:ss", Locale.US);
+
+    /**
+     * Returns a duration formatted as h:mm:ss or m:ss. All input paramters don't need adjusting --
+     * i.e. putting in "4", "120", "3222", "100000"  will just find out the total duration represented
+     * by the sum of all times.
+     * @param hours Hours to include.
+     * @param minutes Minutes to include.
+     * @param seconds Seconds to include.
+     * @param millis Milliseconds to include.
+     * @return The duration, formatted.
+     */
+    public static String formatDuration(int hours, int minutes, int seconds, int millis){
+        Date tmpDate = new Date();
+        long durationMillis = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000) + millis;
+
+        int totalHours = (int) Math.floor(durationMillis / 60 / 60 / 1000);
+        int totalMinutes = (int) Math.floor((durationMillis - (totalHours * 60 * 60 * 1000)) / 60 / 1000);
+        int totalSeconds = (int) Math.floor((durationMillis - (totalHours * 60 * 60 * 1000) - (totalMinutes * 60 * 1000)) / 1000);
+        //Milliseconds are... whatever.
+
+        tmpDate.setHours(totalHours);
+        tmpDate.setMinutes(totalMinutes);
+        tmpDate.setSeconds(totalSeconds);
+        if(totalHours > 0){
+            return HOURS_MINUTES_SECONDS.format(tmpDate);
+        } else {
+            return MINUTES_SECONDS.format(tmpDate);
+        }
+    }
+
+    public static void debugNotification(String title, String message, Context ctx){
+        NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(new Random().nextInt(), new NotificationCompat.Builder(ctx)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setSmallIcon(R.drawable.ic_list_black_24dp)
+                .setContentIntent(PendingIntent.getActivity(ctx, 5005, new Intent(ctx, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT))
+                .build());
     }
 }

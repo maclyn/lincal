@@ -217,6 +217,12 @@ public class AddTaskActivity extends AppCompatActivity {
                 if(dow == Calendar.SATURDAY) saturday = true;
             }
 
+            if(task.getReminderThreshold() == 0){
+                enableReminder.setChecked(false);
+            } else {
+                countPicker.setValue(task.getReminderThreshold());
+            }
+
             productivityRating.setProgress(task.getProductivityLevel());
             archived = (task.isArchived() ? 1 : 0);
 

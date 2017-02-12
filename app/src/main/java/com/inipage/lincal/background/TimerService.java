@@ -11,6 +11,7 @@ import android.support.v4.util.Pair;
 
 import com.inipage.lincal.MainActivity;
 import com.inipage.lincal.R;
+import com.inipage.lincal.Utilities;
 import com.inipage.lincal.db.DatabaseEditor;
 import com.inipage.lincal.model.Task;
 import com.inipage.lincal.model.Todo;
@@ -86,6 +87,9 @@ public class TimerService extends Service {
                 //Start a timer for a given taskId
                 mTaskId = intent.getLongExtra(EXTRA_TASK_ID, -1);
                 mTodoId = intent.getLongExtra(EXTRA_TODO_ID, -1);
+
+                Utilities.debugNotification("Got " + action, "TaskID: " + mTaskId + ", TodoID: " + mTodoId, this);
+
                 if(mTaskId == -1){ stopSelf(); return START_NOT_STICKY; }
                 mTask = DatabaseEditor.getInstance(this).getTask(mTaskId);
                 if (mTodoId != -1){
@@ -112,12 +116,16 @@ public class TimerService extends Service {
                 LocalBroadcastManager.getInstance(this).sendBroadcast(startIntent);
                 break;
             case ACTION_STOP_TIMER:
+                Utilities.debugNotification("Got stop timer", "!", this);
+
                 if(mState != STATE_DEAD && mState != STATE_P_BREAK){
                     manageTimerStop();
                 }
                 stopSelf();
                 break;
             case ACTION_START_BREAK:
+                Utilities.debugNotification("Got start break", "Current task/todo: " + mTaskId + ", " + mTodoId, this);
+
                 mCachedTaskId = mTaskId;
                 manageTimerStop();
                 mStartTime = System.currentTimeMillis();

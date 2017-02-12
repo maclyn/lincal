@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,16 +19,17 @@ import android.view.ViewGroup;
 import com.inipage.lincal.R;
 import com.inipage.lincal.background.TimerService;
 import com.inipage.lincal.db.DatabaseEditor;
+import com.inipage.lincal.model.Task;
 import com.inipage.lincal.model.TaskToday;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class TodayFragment extends Fragment {
-    RecyclerView taskView;
+public class TodayFragment extends TimerAwareFragment {
+    RecyclerView todayView;
     TodayAdapter adapter;
-    BroadcastReceiver receiver;
+    List<TodayAdapter.TodayAdapterItem> items;
 
     public TodayFragment(){
     }
@@ -50,7 +52,7 @@ public class TodayFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_today, container, false);
-        taskView = (RecyclerView) v.findViewById(R.id.today_view);
+        todayView = (RecyclerView) v.findViewById(R.id.today_view);
         return v;
     }
 
@@ -58,22 +60,32 @@ public class TodayFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        /*
-        taskView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        final List<TaskToday> tasks = DatabaseEditor.getInstance(getActivity()).getTasksWithRemindersAndTimeSpentToday(false);
-        Collections.sort(tasks, new Comparator<TaskToday>() {
-            @Override
-            public int compare(TaskToday taskToday, TaskToday t1) {
-                return taskToday.getSecondsSoFar() - t1.getSecondsSoFar();
-            }
-        });
-        adapter = new TodayAdapter(tasks);
-        taskView.setAdapter(adapter);
-            */
+        items = TodayAdapter.TodayAdapterItem.getStandardItems(getContext());
+        todayView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        adapter = new TodayAdapter(items, getContext());
+        todayView.setAdapter(adapter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+    }
+
+    @Override
+    void onTimerStarted(long taskId, long todoId) {
+        int taskLocation = 0;
+        for(TodayAdapter.TodayAdapterItem t : items){
+            if(t.isReminder() && todoId == -1 && t.getTask().getId() == taskId)
+                break;
+            else if(t.isTodo() && todoId != -1 && t.getTodo().getId() == todoId && t.getTodo().getTaskId() == taskId)
+                break;
+            taskLocation++;
+        }
+        adapter.notifyItemChanged(taskLocation);
+    }
+
+    @Override
+    void onTimerStopped(long taskId, long todoId) {
+        onTimerStarted(taskId, todoId); //Same implementation, actually
     }
 }

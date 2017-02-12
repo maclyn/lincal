@@ -2,6 +2,7 @@ package com.inipage.lincal;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -17,6 +18,10 @@ import com.inipage.lincal.ui.HistoryFragment;
 import com.inipage.lincal.ui.TaskMgmtFragment;
 import com.inipage.lincal.ui.TodayFragment;
 import com.inipage.lincal.ui.TodoFragment;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements
         BottomNavigationView.OnNavigationItemSelectedListener {

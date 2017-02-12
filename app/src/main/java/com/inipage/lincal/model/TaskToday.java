@@ -17,4 +17,8 @@ public class TaskToday extends Task {
     public void setSecondsSoFar(int secondsSoFar) {
         this.secondsSoFar = secondsSoFar;
     }
+
+    public boolean hasCompletedRequiredTime(){
+        return this.secondsSoFar >= (getReminderThreshold() * 60);
+    }
 }
