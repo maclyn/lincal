@@ -32,7 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 
 
-public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
+public class TodayAdapter extends TimerAwareAdapter<TodayAdapter.ItemVH> {
     public class ItemVH extends RecyclerView.ViewHolder {
         CardView cardView;
         View mainBackground;
@@ -110,7 +110,7 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
 
             //TODO: Speed up with SQL selections, limits
             List<TaskToday> tasks = editor.getTasksWithRemindersAndTimeSpentToday(false);
-            List<Todo> todos = editor.getAllTodosSorted(null, false);
+            List<Todo> todos = editor.getAllTodosSorted(null, true);
 
             List<TodayAdapterItem> items = new ArrayList<>();
 
@@ -139,7 +139,7 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
             }
 
             //Sort sensibly
-            //i.e. todos for today, incomplete reminders for today, other todos, complete reminders
+            //i.e. any todos for today (including complete), incomplete reminders for today, other todos, complete reminders
             Collections.sort(items, new Comparator<TodayAdapterItem>() {
                 @Override
                 public int compare(TodayAdapterItem lhs, TodayAdapterItem rhs) {
@@ -215,9 +215,15 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
     private final SimpleDateFormat SHORT_DATE = new SimpleDateFormat("M/d", Locale.US);
 
     @Override
+    public void onBindViewHolder(ItemVH holder, int position, List<Object> payloads) {
+        super.onBindViewHolder(holder, position, payloads);
+
+    }
+
+    @Override
     public void onBindViewHolder(final ItemVH holder, int position) {
         TodayAdapterItem item = mItems.get(position);
-        Task rootTask = item.isReminder() ? item.getTask() : mTaskMap.get(item.getTodo().getId());
+        Task rootTask = item.isReminder() ? item.getTask() : mTaskMap.get(item.getTodo().getTaskId());
 
         //(1) Setup borders based on task color
         int color = rootTask.getColor();
@@ -252,16 +258,21 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
         } else {
             holder.progressBar.setVisibility(View.VISIBLE);
 
-            holder.progressBar.setProgress(item.getTask().getSecondsSoFar());
+            int secondsSoFar = item.getTask().getSecondsSoFar();
+            if(getTimerManager().isTimerRunning(item.getTask(), null)){
+                //Uh-oh -- better grab "seconds so far" from the TimerService
+                secondsSoFar += getTimerManager().getTimerTime();
+            }
+
+            holder.progressBar.setProgress(secondsSoFar);
             holder.progressBar.setMax(item.getTask().getReminderThreshold() * 60);
 
-            if(item.getTask().hasCompletedRequiredTime()) {
+            if(secondsSoFar > (item.getTask().getReminderThreshold() * 60)) {
                 holder.mainBackground.setBackgroundColor(Color.parseColor("#E8F5E9"));
-
-                holder.contentText.setText("Goal met! (" + Utilities.formatDuration(0, 0, item.getTask().getSecondsSoFar(), 0) + ")");
+                holder.contentText.setText("Goal met! (" + Utilities.formatDuration(0, 0, secondsSoFar, 0) + ")");
             } else {
                 holder.mainBackground.setBackgroundColor(Color.parseColor("#ffebee"));
-                holder.contentText.setText(Utilities.formatDuration(0, 0, item.getTask().getSecondsSoFar(), 0) + "/" +
+                holder.contentText.setText(Utilities.formatDuration(0, 0, secondsSoFar, 0) + "/" +
                         Utilities.formatDuration(0, item.getTask().getReminderThreshold(), 0, 0));
             }
         }
@@ -269,13 +280,12 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
         //(6) Show/hide timing buttons if needed
         //Set button visibility
         if(item.isTodo()){
-            boolean runningTimer = item.getTodo().getTaskId() == TimerService.mTaskId &&
-                    item.getTodo().getId() == TimerService.mTodoId;
+            boolean runningTimer = getTimerManager().isTimerRunning(mTaskMap.get(item.getTodo().getTaskId()), item.getTodo());
             holder.timerStop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
             holder.timerStart.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
             holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
         } else {
-            boolean runningTimer = item.getTask().getId() == TimerService.mTaskId && TimerService.mTodoId == -1;
+            boolean runningTimer = getTimerManager().isTimerRunning(item.getTask(), null);
             holder.timerStop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
             holder.timerStart.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
             holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
@@ -284,49 +294,29 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
         holder.timerStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TodayAdapterItem task = mItems.get(holder.getAdapterPosition());
-                Context ctx = holder.itemView.getContext();
+                TodayAdapterItem item = mItems.get(holder.getAdapterPosition());
 
-                Intent serviceIntent = new Intent(ctx, TimerService.class);
-                serviceIntent.setAction(TimerService.ACTION_START_TIMER);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.isReminder() ?
-                        task.getTask().getId() :
-                        task.getTodo().getTaskId());
-                if(task.isTodo())
-                    serviceIntent.putExtra(TimerService.EXTRA_TODO_ID, task.getTodo().getId());
-                ctx.startService(serviceIntent);
+                Task task = item.isReminder() ? item.getTask() : mTaskMap.get(item.getTodo().getTaskId());
+                Todo todo = item.isReminder() ? null : item.getTodo();
+
+                getTimerManager().startTimer(task, todo);
             }
         });
         holder.pomodoro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TodayAdapterItem task = mItems.get(holder.getAdapterPosition());
-                Context ctx = holder.itemView.getContext();
+                TodayAdapterItem item = mItems.get(holder.getAdapterPosition());
 
-                Intent serviceIntent = new Intent(ctx, TimerService.class);
-                serviceIntent.setAction(TimerService.ACTION_START_POMODORO);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.isReminder() ?
-                        task.getTask().getId() :
-                        task.getTodo().getTaskId());
-                if(task.isTodo())
-                    serviceIntent.putExtra(TimerService.EXTRA_TODO_ID, task.getTodo().getId());
-                ctx.startService(serviceIntent);
+                Task task = item.isReminder() ? item.getTask() : mTaskMap.get(item.getTodo().getTaskId());
+                Todo todo = item.isReminder() ? null : item.getTodo();
+
+                getTimerManager().startPomodoro(task, todo);
             }
         });
         holder.timerStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TodayAdapterItem task = mItems.get(holder.getAdapterPosition());
-                Context ctx = holder.itemView.getContext();
-
-                Intent serviceIntent = new Intent(ctx, TimerService.class);
-                serviceIntent.setAction(TimerService.ACTION_STOP_TIMER);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.isReminder() ?
-                        task.getTask().getId() :
-                        task.getTodo().getTaskId());
-                if(task.isTodo())
-                    serviceIntent.putExtra(TimerService.EXTRA_TODO_ID, task.getTodo().getId());
-                ctx.startService(serviceIntent);
+                mTimerManager.stopTimer();
             }
         });
 
@@ -351,5 +341,21 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.ItemVH> {
     @Override
     public int getItemCount() {
         return mItems.size();
+    }
+
+    @Override
+    public int getTimerPosition(long taskId, long todoId) {
+        for(int i = 0; i < mItems.size(); i++){
+            TodayAdapterItem t = mItems.get(i);
+            if(taskId != -1 && todoId != -1){
+                if(!t.isTodo()) continue;
+                if(t.getTodo().getId() == todoId && t.getTodo().getTaskId() == taskId) return i;
+            } else if (taskId != -1){
+                if(!t.isReminder()) continue;
+                if(t.getTask().getId() == taskId) return i;
+            }
+        }
+
+        return -1;
     }
 }

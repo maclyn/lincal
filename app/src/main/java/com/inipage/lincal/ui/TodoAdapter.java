@@ -29,9 +29,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
-public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoVH> {
+public class TodoAdapter extends TimerAwareAdapter<TodoAdapter.TodoVH> {
     class TodoVH extends RecyclerView.ViewHolder {
         TextView todoTitle;
         ImageView todoCheck;
@@ -62,21 +63,12 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoVH> {
 
     List<Todo> mTodos;
     List<Task> mCachedTasks;
-    long mCachedTimerTodoId = -1;
-    int mCachedTimerPosition = -1;
+    Map<Long, Task> mTaskMap;
 
-    public TodoAdapter(List<Todo> todos, List<Task> tasks){
+    public TodoAdapter(List<Todo> todos, List<Task> tasks, Context ctx){
         mTodos = todos;
         mCachedTasks = tasks;
-
-        if(TimerService.mTodoId != -1){
-            int search = searchForMatchingTimer(TimerService.mTodoId);
-            if(search != -1){
-                mCachedTimerTodoId = TimerService.mTodoId;
-                mCachedTimerPosition = search;
-            }
-            searchForMatchingTimer(TimerService.mTodoId);
-        }
+        mTaskMap = DatabaseEditor.getInstance(ctx).getTaskMap();
     }
 
     @Override
@@ -89,8 +81,10 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoVH> {
     @Override
     public void onBindViewHolder(final TodoVH holder, int position) {
         Todo todo = mTodos.get(position);
+        Task task = null;
         for(Task t : mCachedTasks){ //TODO: Map tasks -> icons > O(n) search?
             if(t.getId() == todo.getTaskId()){
+                task = t;
                 Context ctx = holder.itemView.getContext();
                 holder.todoTaskIcon.setImageResource(ctx.getResources().getIdentifier(t.getIcon(),
                         "drawable", ctx.getPackageName()));
@@ -134,7 +128,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoVH> {
             return;
         }
 
-        if(TimerService.mTodoId != todo.getId()){
+        if(getTimerManager().isTimerRunning(task, todo)){
             Utilities.attachIconPopupMenu(holder.todoTimerStart, R.menu.timer_menu, null, new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
@@ -142,18 +136,10 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoVH> {
                     Todo todo = mTodos.get(holder.getAdapterPosition());
                     switch(item.getItemId()){
                         case R.id.start_pomodoro:
-                            Intent serviceIntent = new Intent(ctx, TimerService.class);
-                            serviceIntent.setAction(TimerService.ACTION_START_POMODORO);
-                            serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, todo.getTaskId());
-                            serviceIntent.putExtra(TimerService.EXTRA_TODO_ID, todo.getId());
-                            ctx.startService(serviceIntent);
+                            getTimerManager().startPomodoro(mTaskMap.get(todo.getTaskId()), todo);
                             break;
                         case R.id.start_timer:
-                            Intent startIntent = new Intent(ctx, TimerService.class);
-                            startIntent.setAction(TimerService.ACTION_START_TIMER);
-                            startIntent.putExtra(TimerService.EXTRA_TASK_ID, todo.getTaskId());
-                            startIntent.putExtra(TimerService.EXTRA_TODO_ID, todo.getId());
-                            ctx.startService(startIntent);
+                            getTimerManager().startTimer(mTaskMap.get(todo.getTaskId()), todo);
                             break;
                     }
                     return true;
@@ -167,9 +153,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoVH> {
             holder.todoTimerStop.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent serviceIntent = new Intent(v.getContext(), TimerService.class);
-                    serviceIntent.setAction(TimerService.ACTION_STOP_TIMER);
-                    v.getContext().startService(serviceIntent);
+                    getTimerManager().stopTimer();
                 }
             });
         }
@@ -253,37 +237,13 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoVH> {
         notifyItemChanged(position); //TODO: Hmm... do we want "completed" tasks to just disappear? This "stay around" behavior might be okay
     }
 
-    public void notifyTimerStart(long taskId, long todoId){
-        if(todoId == -1) return; //Nothing for us here, folks
-
-        //There's a to-do timer starting! Search for it -- it probably was started by this very adapter!
-        int search = searchForMatchingTimer(todoId);
-        if(search != -1){
-            mCachedTimerTodoId = todoId;
-            mCachedTimerPosition = search;
-            notifyItemChanged(search);
-        }
-    }
-
-    private int searchForMatchingTimer(long todoId) {
-        for(int i = 0; i < mTodos.size(); i++){
-            if(mTodos.get(i).getId() == todoId){
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public void notifyTimerStop(long taskId, long todoId){
-        if(mCachedTimerTodoId != -1){
-            notifyItemChanged(mCachedTimerPosition);
-            mCachedTimerTodoId = -1;
-            mCachedTimerPosition = -1;
-        }
-    }
-
     @Override
     public int getItemCount() {
         return mTodos.size();
+    }
+
+    @Override
+    public int getTimerPosition(long taskId, long todoId) {
+        return 0;
     }
 }

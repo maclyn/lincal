@@ -283,6 +283,14 @@ public class DatabaseEditor {
         return null;
     }
 
+    public TaskToday getTaskWithTimes(long taskId){
+        List<TaskToday> tasks = getTasksWithRemindersAndTimeSpentToday(true);
+        for(TaskToday t : tasks){ //Inefficient, but quick to write
+            if(t.getId() == taskId) return t;
+        }
+        return null;
+    }
+
     public void deleteTask(long taskId) {
         db.delete(DatabaseHelper.TASKS_TABLE_NAME, DatabaseHelper.TASKS_ID_COL_NAME + "=?", new String[] { String.valueOf(taskId) });
         db.delete(DatabaseHelper.RECORDS_TABLE_NAME, DatabaseHelper.RECORDS_TASK_ID_COL_NAME + "=?", new String[] { String.valueOf(taskId) });

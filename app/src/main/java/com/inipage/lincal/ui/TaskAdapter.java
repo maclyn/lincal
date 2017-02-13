@@ -23,7 +23,7 @@ import com.inipage.lincal.model.TaskToday;
 
 import java.util.List;
 
-public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
+public class TaskAdapter extends TimerAwareAdapter<TaskAdapter.TaskVH> {
     private static final String TAG = "TaskAdapter";
 
     public class TaskVH extends RecyclerView.ViewHolder {
@@ -141,7 +141,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
             return;
         }
 
-        boolean runningTimer = mTasks.get(position).getId() == TimerService.mTaskId && TimerService.mTodoId != -1;
+        boolean runningTimer = getTimerManager().isTimerRunning(mTasks.get(position), null);
         holder.timerStop.setVisibility(runningTimer ? View.VISIBLE : View.GONE);
         holder.timerStart.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
         holder.pomodoro.setVisibility(runningTimer ? View.GONE : View.VISIBLE);
@@ -150,36 +150,21 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
             @Override
             public void onClick(View view) {
                 Task task = mTasks.get(holder.getAdapterPosition());
-                Context ctx = holder.itemView.getContext();
-
-                Intent serviceIntent = new Intent(ctx, TimerService.class);
-                serviceIntent.setAction(TimerService.ACTION_START_TIMER);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
-                ctx.startService(serviceIntent);
+                getTimerManager().startTimer(task, null);
             }
         });
         holder.pomodoro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Task task = mTasks.get(holder.getAdapterPosition());
-                Context ctx = holder.itemView.getContext();
-
-                Intent serviceIntent = new Intent(ctx, TimerService.class);
-                serviceIntent.setAction(TimerService.ACTION_START_POMODORO);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
-                ctx.startService(serviceIntent);
+                getTimerManager().startPomodoro(task, null);
             }
         });
         holder.timerStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Task task = mTasks.get(holder.getAdapterPosition());
-                Context ctx = holder.itemView.getContext();
-
-                Intent serviceIntent = new Intent(ctx, TimerService.class);
-                serviceIntent.setAction(TimerService.ACTION_STOP_TIMER);
-                serviceIntent.putExtra(TimerService.EXTRA_TASK_ID, task.getId());
-                ctx.startService(serviceIntent);
+                getTimerManager().stopTimer();
             }
         });
     }
@@ -210,5 +195,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
     @Override
     public int getItemCount() {
         return mTasks.size();
+    }
+
+    @Override
+    public int getTimerPosition(long taskId, long todoId) {
+        return 0;
     }
 }

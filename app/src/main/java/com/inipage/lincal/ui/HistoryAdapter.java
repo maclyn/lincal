@@ -87,13 +87,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
                 final String note = r.getNote();
 
                 //(2) Add an hourly rate
-                final EditText editText = new EditText(view.getContext());
-                editText.setText(note);
-                editText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
+                View dialogView = LayoutInflater.from(ctx).inflate(R.layout.dialog_edit_note, null);
+                final EditText editText = (EditText) dialogView.findViewById(R.id.dialog_edit_note);
+                editText.setText(note.equals(ctx.getString(R.string.timed_with_timer)) ? "" : note);
                 new AlertDialog.Builder(view.getContext())
-                        .setTitle("Edit Note")
-                        .setView(editText)
-                        .setPositiveButton("Save Note", new DialogInterface.OnClickListener() {
+                        .setTitle(R.string.edit_note)
+                        .setView(dialogView)
+                        .setPositiveButton(R.string.save_note, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 editor.editNoteForRecord(r.getId(), editText.getText().toString());

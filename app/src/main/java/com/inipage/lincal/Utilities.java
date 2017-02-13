@@ -15,7 +15,9 @@ import android.view.Menu;
 import android.view.View;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.Random;
 
@@ -24,6 +26,15 @@ import java.util.Random;
  * TODO: Add a JavaDoc for this class.
  */
 public class Utilities {
+    public static Date getTodayAtMidnight() {
+        Calendar todayAtMidnight = new GregorianCalendar();
+        todayAtMidnight.set(Calendar.HOUR_OF_DAY, 23);
+        todayAtMidnight.set(Calendar.MINUTE, 59);
+        todayAtMidnight.set(Calendar.SECOND, 59);
+        todayAtMidnight.set(Calendar.MILLISECOND, 999);
+        return todayAtMidnight.getTime();
+    }
+
     public interface MenuPrepListener {
         void onPrepMenu(Menu menu);
     }
@@ -109,6 +120,7 @@ public class Utilities {
     }
 
     public static void debugNotification(String title, String message, Context ctx){
+        /*
         NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(new Random().nextInt(), new NotificationCompat.Builder(ctx)
                 .setContentTitle(title)
@@ -116,5 +128,6 @@ public class Utilities {
                 .setSmallIcon(R.drawable.ic_list_black_24dp)
                 .setContentIntent(PendingIntent.getActivity(ctx, 5005, new Intent(ctx, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT))
                 .build());
+         */
     }
 }

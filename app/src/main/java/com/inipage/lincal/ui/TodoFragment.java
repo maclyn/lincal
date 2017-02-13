@@ -33,7 +33,7 @@ import com.inipage.lincal.model.Todo;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TodoFragment extends TimerAwareFragment {
+public class TodoFragment extends Fragment {
     FloatingActionButton addTodo;
     RecyclerView todoView;
     Toolbar toolbar;
@@ -137,16 +137,6 @@ public class TodoFragment extends TimerAwareFragment {
         }
     }
 
-    @Override
-    void onTimerStarted(long taskId, long todoId) {
-        adapter.notifyTimerStart(taskId, todoId);
-    }
-
-    @Override
-    void onTimerStopped(long taskId, long todoId) {
-        adapter.notifyTimerStop(taskId, todoId);
-    }
-
     private void markAllAsDone() {
         new AlertDialog.Builder(getContext())
                 .setTitle(R.string.mark_all_done)
@@ -174,7 +164,7 @@ public class TodoFragment extends TimerAwareFragment {
     private void setAdapter(){
         selectedTask = (Task) taskSpinner.getSelectedItem();
         allTodos = DatabaseEditor.getInstance(getActivity()).getAllTodosSorted(selectedTask == null || selectedTask.getId() == -1 ? null : selectedTask, showCompleted);
-        adapter = new TodoAdapter(allTodos, DatabaseEditor.getInstance(getActivity()).getTasks(true));
+        adapter = new TodoAdapter(allTodos, DatabaseEditor.getInstance(getActivity()).getTasks(true), getContext());
         todoView.setLayoutManager(new LinearLayoutManager(getActivity()));
         todoView.setAdapter(adapter);
     }

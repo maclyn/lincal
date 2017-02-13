@@ -29,7 +29,7 @@ import com.inipage.lincal.model.TaskToday;
 
 import java.util.List;
 
-public class TaskMgmtFragment extends TimerAwareFragment {
+public class TaskMgmtFragment extends Fragment {
     FloatingActionButton addTask;
     RecyclerView taskView;
     Toolbar toolbar;
@@ -95,22 +95,6 @@ public class TaskMgmtFragment extends TimerAwareFragment {
                 return true;
             }
         });
-    }
-
-    @Override
-    void onTimerStarted(long taskId, long todoId) {
-        int taskLocation = 0;
-        for(Task t : tasks){
-            if(t.getId() == taskId)
-                break;
-            taskLocation++;
-        }
-        adapter.notifyItemChanged(taskLocation);
-    }
-
-    @Override
-    void onTimerStopped(long taskId, long todoId) {
-        onTimerStarted(taskId, todoId); //Same implementation, actually
     }
 
     private void setAdapter(){

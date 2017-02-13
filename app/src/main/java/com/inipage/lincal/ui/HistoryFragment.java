@@ -49,6 +49,7 @@ public class HistoryFragment extends Fragment {
         historyView.setLayoutManager(new LinearLayoutManager(getActivity()));
         adapter = new HistoryAdapter(DatabaseEditor.getInstance(getActivity()).getRecordsSortedByDay());
         historyView.setAdapter(adapter);
+        historyView.scrollToPosition(adapter.getItemCount() - 1);
     }
 
     @Override
