@@ -199,6 +199,10 @@ public class TaskAdapter extends TimerAwareAdapter<TaskAdapter.TaskVH> {
 
     @Override
     public int getTimerPosition(long taskId, long todoId) {
-        return 0;
+        if(todoId != -1) return -1;
+        for(Task t : mTasks){
+            if(t.getId() == taskId) return mTasks.indexOf(t);
+        }
+        return -1;
     }
 }

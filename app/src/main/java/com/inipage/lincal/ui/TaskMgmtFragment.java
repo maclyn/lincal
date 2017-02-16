@@ -71,6 +71,7 @@ public class TaskMgmtFragment extends Fragment {
             }
         });
         taskView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayout.VERTICAL));
+        taskView.getItemAnimator().setChangeDuration(0);
         toolbar = (Toolbar) v.findViewById(R.id.task_toolbar);
         toolbar.inflateMenu(R.menu.task_menu);
 

@@ -54,6 +54,7 @@ public class TimerService extends Service implements TimerStateManager.TimerStat
     private static final int STATE_P_BREAK = 3;
 
     //Gross runtime state stuff.
+    private final Object stateLock = new Object();
     private int mState = STATE_DEAD;
     private long mStartTime = -1L;
     private TaskToday mTask = null;
@@ -80,6 +81,7 @@ public class TimerService extends Service implements TimerStateManager.TimerStat
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if(intent == null) return START_NOT_STICKY;
         String action = intent.getAction();
 
         switch(action){
@@ -223,71 +225,87 @@ public class TimerService extends Service implements TimerStateManager.TimerStat
 
     @Override
     public void startTimer(Task task, Todo todo, boolean isPomodoro) {
-        if(mState != STATE_DEAD && mState != STATE_P_BREAK) {
-            stopTimer();
-        }
+        synchronized (stateLock) {
+            if (mState != STATE_DEAD && mState != STATE_P_BREAK) {
+                stopTimer();
+            }
 
-        mTask = DatabaseEditor.getInstance(this).getTaskWithTimes(task.getId());
-        mTodo = todo;
-        mTaskDrawableId = getResources().getIdentifier(mTask.getIcon(), "drawable", getPackageName());
-        List<TaskToday> taskTodays = DatabaseEditor.getInstance(this).getTasksWithRemindersAndTimeSpentToday(true);
-        for(TaskToday tt : taskTodays){
-            if(tt.getId() == task.getId()){
-                mTask = tt;
-                break;
-            }
+            mTask = DatabaseEditor.getInstance(this).getTaskWithTimes(task.getId());
+            mTodo = todo;
+            mTaskDrawableId = getResources().getIdentifier(mTask.getIcon(), "drawable", getPackageName());
+            mState = !isPomodoro ? STATE_RUNNING : STATE_POMODORO;
+            mTimerStateManager.onTimerStarted(mTask, todo);
+            TimerTask updateTimer = new TimerTask() {
+                @Override
+                public void run() {
+                    timerUpdate();
+                }
+            };
+            mStartTime = System.currentTimeMillis();
+            mTimer = new Timer();
+            mTimer.scheduleAtFixedRate(updateTimer, new Date(), 1000L);
         }
-        mState = !isPomodoro ? STATE_RUNNING : STATE_POMODORO;
-        mTimerStateManager.onTimerStarted(mTask, todo);
-        TimerTask updateTimer = new TimerTask() {
-            @Override
-            public void run() {
-                timerUpdate();
-            }
-        };
-        mStartTime = System.currentTimeMillis();
-        mTimer.scheduleAtFixedRate(updateTimer, new Date(), 1000L);
     }
 
     @Override
     public void stopTimer() {
-        if(mState == STATE_DEAD || mState == STATE_P_BREAK){
-            return;
+        TaskToday cachedTask = null;
+        Todo cachedTodo = null;
+
+        synchronized (stateLock) {
+            if (mState == STATE_DEAD || mState == STATE_P_BREAK) {
+                return;
+            }
+
+            int secondsRun = (int) (System.currentTimeMillis() - mStartTime) / 1000;
+            //We do this to reconcile *rough* timing (+1 in ticks) with actually timing
+            mTask.setSecondsSoFar(DatabaseEditor.getInstance(this).getTaskWithTimes(mTask.getId()).getSecondsSoFar() + secondsRun);
+
+            DatabaseEditor.getInstance(this).addNewRecord(
+                    mTask.getId(),
+                    secondsRun,
+                    mTodo != null ? getString(R.string.worked_on_todo, mTodo.getTitle()) : getString(R.string.timed_with_timer),
+                    new Date(mStartTime),
+                    new Date(System.currentTimeMillis()),
+                    mTodo == null ? -1 : mTodo.getId()
+            );
+
+            mTimer.cancel();
+
+            cachedTask = mTask;
+            cachedTodo = mTodo;
+            mTask = null;
+            mTodo = null;
+            mState = STATE_DEAD;
+
+            stopForeground(true);
         }
-
-        int secondsRun = (int) (System.currentTimeMillis() - mStartTime) / 1000;
-
-        DatabaseEditor.getInstance(this).addNewRecord(
-                mTask.getId(),
-                secondsRun,
-                mTodo != null ? getString(R.string.worked_on_todo, mTodo.getTitle()) : getString(R.string.timed_with_timer),
-                new Date(mStartTime),
-                new Date(System.currentTimeMillis()),
-                mTodo == null ? -1 : mTodo.getId()
-        );
-
-        mTimerStateManager.onTimerStopped(mTask, mTodo);
-
-        mTask = null;
-        mTodo = null;
-        mState = STATE_DEAD;
+        mTimerStateManager.onTimerStopped(cachedTask, cachedTodo);
     }
 
     @Override
     public boolean isTimerRunning(long taskId, long todoId) {
-        if(mState == STATE_DEAD || mState == STATE_P_BREAK) return false;
-        if(todoId == -1 && taskId == mTask.getId() && mTodo == null) return true;
-        if(mTodo == null && todoId != -1) return false;
-        return mTodo.getId() == todoId;
+        synchronized (stateLock) {
+            if (mState == STATE_DEAD || mState == STATE_P_BREAK) return false;
+            if (mTask == null) return false;
+
+            if(todoId == -1){ //Only check task
+                return mTask.getId() == taskId;
+            } else {
+                return mTodo != null && mTodo.getId() == todoId;
+            }
+        }
     }
 
     @Override
     public int getTimerTime() {
-        if(mState == STATE_RUNNING || mState == STATE_POMODORO){
-            long now = System.currentTimeMillis();
-            long diff = now - mStartTime;
-            return (int) (diff / 1000);
+        synchronized (stateLock) {
+            if (mState == STATE_RUNNING || mState == STATE_POMODORO) {
+                long now = System.currentTimeMillis();
+                long diff = now - mStartTime;
+                return (int) (diff / 1000);
+            }
+            return 0;
         }
-        return 0;
     }
 }

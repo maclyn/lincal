@@ -122,7 +122,7 @@ public class TodayAdapter extends TimerAwareAdapter<TodayAdapter.ItemVH> {
             tmp.roll(Calendar.DAY_OF_YEAR, 3);
             Date threeDaysFromNow = tmp.getTime();
             for (Todo t : todos) {
-                if (!t.getDueDateAsDate().before(threeDaysFromNow)) break;
+                if (!t.getDueDateAsDate().before(threeDaysFromNow)) continue;
                 items.add(new TodayAdapterItem(t));
                 if (items.size() > 4) break;
             }
@@ -217,7 +217,6 @@ public class TodayAdapter extends TimerAwareAdapter<TodayAdapter.ItemVH> {
     @Override
     public void onBindViewHolder(ItemVH holder, int position, List<Object> payloads) {
         super.onBindViewHolder(holder, position, payloads);
-
     }
 
     @Override
@@ -322,6 +321,7 @@ public class TodayAdapter extends TimerAwareAdapter<TodayAdapter.ItemVH> {
 
         //(7) Enable checkbox functionality
         if(item.isTodo()){
+            holder.checkbox.setVisibility(View.VISIBLE);
             holder.checkboxImage.setImageResource(item.getTodo().isComplete() ? R.drawable.ic_check_box_black_48dp : R.drawable.ic_check_box_outline_blank_black_48dp);
             holder.checkbox.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -357,5 +357,16 @@ public class TodayAdapter extends TimerAwareAdapter<TodayAdapter.ItemVH> {
         }
 
         return -1;
+    }
+
+    @Override
+    public void onTimerStopped(TaskToday task, Todo todo) {
+        //Before we update the item, we update the relevant item with the seconds in task
+        //Yes, it's a 2xlinear search
+        if(todo == null){
+            int taskPosition = getTimerPosition(task.getId(), -1);
+            if(taskPosition != -1) mItems.get(taskPosition).getTask().setSecondsSoFar(task.getSecondsSoFar());
+        }
+        super.onTimerStopped(task, todo);
     }
 }

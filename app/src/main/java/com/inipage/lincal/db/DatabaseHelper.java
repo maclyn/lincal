@@ -10,7 +10,7 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String FILENAME = "database.db";
-    public static final int VERSION = 9;
+    public static final int VERSION = 10;
 
     public static final SimpleDateFormat DB_REMINDER_TIME_FORMAT = new SimpleDateFormat("h:mm aa", Locale.US);
     public static final SimpleDateFormat DB_RECORD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -75,8 +75,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String CREATE_TABLE_RECORDS = "CREATE TABLE `" + RECORDS_TABLE_NAME + "` (\n" +
             "\t`" + RECORDS_ID_COL_NAME + "`\tINTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,\n" +
             "\t`" + RECORDS_TASK_ID_COL_NAME + "`\tINTEGER NOT NULL,\n" +
-            "\t`" + RECORDS_START_TIME_COL_NAME + "`\tTEXT NOT NULL UNIQUE,\n" +
-            "\t`" + RECORDS_END_TIME_COL_NAME + "`\tTEXT NOT NULL UNIQUE,\n" +
+            "\t`" + RECORDS_START_TIME_COL_NAME + "`\tTEXT NOT NULL,\n" +
+            "\t`" + RECORDS_END_TIME_COL_NAME + "`\tTEXT NOT NULL,\n" +
             "\t`" + RECORDS_TOTAL_TIME_COL_NAME + "`\tINTEGER NOT NULL,\n" +
             "\t`" + RECORDS_NOTES_COL_NAME + "`\tTEXT,\n" +
             "\t`" + RECORDS_TODO_ID_COL_NAME + "`\tINTEGER NOT NULL DEFAULT -1,\n" +
@@ -97,7 +97,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        if(oldVersion < 9){ //Full database rebuild
+        if(oldVersion < 10){ //Full database rebuild
             try {
                 sqLiteDatabase.execSQL("DROP TABLE " + RECORDS_TABLE_NAME); //v1
                 sqLiteDatabase.execSQL("DROP TABLE " + TASKS_TABLE_NAME); //v1\

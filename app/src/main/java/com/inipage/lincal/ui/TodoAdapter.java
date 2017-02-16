@@ -128,7 +128,7 @@ public class TodoAdapter extends TimerAwareAdapter<TodoAdapter.TodoVH> {
             return;
         }
 
-        if(getTimerManager().isTimerRunning(task, todo)){
+        if(!getTimerManager().isTimerRunning(task, todo)){
             Utilities.attachIconPopupMenu(holder.todoTimerStart, R.menu.timer_menu, null, new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
@@ -244,6 +244,10 @@ public class TodoAdapter extends TimerAwareAdapter<TodoAdapter.TodoVH> {
 
     @Override
     public int getTimerPosition(long taskId, long todoId) {
-        return 0;
+        if(todoId == -1) return -1;
+        for(Todo t : mTodos){
+            if(t.getId() == todoId) return mTodos.indexOf(t);
+        }
+        return -1;
     }
 }

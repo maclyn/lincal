@@ -80,6 +80,7 @@ public class TodoFragment extends Fragment {
             }
         });
         todoView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayout.VERTICAL));
+        todoView.getItemAnimator().setChangeDuration(0);
         toolbar = (Toolbar) v.findViewById(R.id.todo_toolbar);
         toolbar.inflateMenu(R.menu.todo_menu);
         taskSpinner = (Spinner) v.findViewById(R.id.todo_task_spinner);
